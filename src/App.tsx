@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppHeader } from "@/components/AppHeader/AppHeader";
 import { CourtSetup } from "@/components/CourtSetup/CourtSetup";
 import { LeaderboardTable } from "@/components/LeaderboardTable/LeaderboardTable";
 import { PlayerSetup } from "@/components/PlayerSetup/PlayerSetup";
+import { PrintSectionButton } from "@/components/PrintSectionButton/PrintSectionButton";
 import { RoundPanel } from "@/components/RoundPanel/RoundPanel";
 import { WinnerBanner } from "@/components/WinnerBanner/WinnerBanner";
 import { useTournament } from "@/hooks/useTournament";
@@ -11,6 +13,10 @@ import { LuCalendarRange, LuTrophy } from "react-icons/lu";
 
 export default function App() {
   const t = useTournament();
+  const [selectedRoundId, setSelectedRoundId] = useState<string | undefined>(t.rounds[0]?.id);
+  const currentRoundId = selectedRoundId && t.rounds.some((round) => round.id === selectedRoundId)
+    ? selectedRoundId
+    : t.rounds[0]?.id;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#14532d,_#052e16_55%,_#022c22)] p-6 text-slate-900">
@@ -60,11 +66,17 @@ export default function App() {
         {t.winner && <WinnerBanner winner={t.winner} />}
 
         <Card className="rounded-[2rem] border-0 bg-white/95 shadow-2xl">
-          <CardHeader>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuCalendarRange className="h-5 w-5" />
               Rundenplan und Ergebnisse
             </CardTitle>
+            {currentRoundId && (
+              <PrintSectionButton
+                targetId={`round-print-${currentRoundId}`}
+                label="Aktuelle Runde drucken"
+              />
+            )}
           </CardHeader>
           <CardContent>
             {t.rounds.length === 0 ? (
@@ -74,7 +86,7 @@ export default function App() {
                   : "Noch kein Turnier geplant."}
               </div>
             ) : (
-              <Tabs defaultValue={t.rounds[0]?.id} className="space-y-5">
+              <Tabs value={currentRoundId} onValueChange={setSelectedRoundId} className="space-y-5">
                 <TabsList className="h-auto w-full flex-wrap justify-start rounded-2xl bg-emerald-50 p-2">
                   {t.rounds.map((round) => (
                     <TabsTrigger key={round.id} value={round.id} className="rounded-2xl data-[state=active]:bg-emerald-700 data-[state=active]:text-white">
@@ -84,7 +96,9 @@ export default function App() {
                 </TabsList>
                 {t.rounds.map((round) => (
                   <TabsContent key={round.id} value={round.id} className="space-y-5">
-                    <RoundPanel round={round} onFieldChange={t.updateMatchField} />
+                    <div id={`round-print-${round.id}`}>
+                      <RoundPanel round={round} onFieldChange={t.updateMatchField} />
+                    </div>
                   </TabsContent>
                 ))}
               </Tabs>
@@ -93,13 +107,16 @@ export default function App() {
         </Card>
 
         <Card className="rounded-[2rem] border-0 bg-white/95 shadow-2xl">
-          <CardHeader>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuTrophy className="h-5 w-5" />
               Gesamtwertung
             </CardTitle>
+            {t.leaderboard.length > 0 && (
+              <PrintSectionButton targetId="leaderboard-print" label="Gesamtwertung drucken" />
+            )}
           </CardHeader>
-          <CardContent>
+          <CardContent id="leaderboard-print">
             <LeaderboardTable leaderboard={t.leaderboard} />
           </CardContent>
         </Card>
