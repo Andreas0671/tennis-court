@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Player, Round } from "@/types";
 import { safeRandomId, buildDefaultCourtNames, addMinutesToTime } from "@/lib/utils";
 import { createSchedule } from "@/lib/tournament";
 import { computeLeaderboard } from "@/lib/leaderboard";
+import { createDefaultTournamentState, loadTournamentState, saveTournamentState } from "@/lib/tournamentStorage";
 
-const DEFAULT_COURTS = 2;
+const DEFAULT_STATE = createDefaultTournamentState();
+const DEFAULT_COURTS = DEFAULT_STATE.courtCount;
 
 const DEMO_NAMES = [
   "Alexander", "Sophie", "Jonas", "Laura", "Ben", "Marie", "Lukas", "Anna",
@@ -12,18 +14,37 @@ const DEMO_NAMES = [
 ];
 
 export function useTournament() {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [rounds, setRounds] = useState<Round[]>([]);
-  const [playerInput, setPlayerInput] = useState("");
-  const [newPlayer, setNewPlayer] = useState("");
-  const [newGender, setNewGender] = useState("m");
-  const [newStrength, setNewStrength] = useState(3);
-  const [roundCount, setRoundCount] = useState(5);
-  const [courtCount, setCourtCount] = useState(DEFAULT_COURTS);
-  const [courtNames, setCourtNames] = useState(buildDefaultCourtNames(DEFAULT_COURTS));
-  const [startTime, setStartTime] = useState("18:00");
-  const [matchDuration, setMatchDuration] = useState(35);
-  const [breakDuration, setBreakDuration] = useState(10);
+  const [initialState] = useState(loadTournamentState);
+
+  const [players, setPlayers] = useState<Player[]>(initialState.players);
+  const [rounds, setRounds] = useState<Round[]>(initialState.rounds);
+  const [playerInput, setPlayerInput] = useState(initialState.playerInput);
+  const [newPlayer, setNewPlayer] = useState(initialState.newPlayer);
+  const [newGender, setNewGender] = useState<Player["gender"]>(initialState.newGender);
+  const [newStrength, setNewStrength] = useState(initialState.newStrength);
+  const [roundCount, setRoundCount] = useState(initialState.roundCount);
+  const [courtCount, setCourtCount] = useState(initialState.courtCount);
+  const [courtNames, setCourtNames] = useState(initialState.courtNames);
+  const [startTime, setStartTime] = useState(initialState.startTime);
+  const [matchDuration, setMatchDuration] = useState(initialState.matchDuration);
+  const [breakDuration, setBreakDuration] = useState(initialState.breakDuration);
+
+  useEffect(() => {
+    saveTournamentState({
+      players,
+      rounds,
+      playerInput,
+      newPlayer,
+      newGender,
+      newStrength,
+      roundCount,
+      courtCount,
+      courtNames,
+      startTime,
+      matchDuration,
+      breakDuration,
+    });
+  }, [players, rounds, playerInput, newPlayer, newGender, newStrength, roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration]);
 
   const leaderboard = useMemo(() => computeLeaderboard(players, rounds), [players, rounds]);
   const winner = leaderboard.find((e) => e.points > 0) ?? null;
@@ -102,10 +123,10 @@ export function useTournament() {
   }
 
   function clearAll() {
-    setPlayers([]); setRounds([]); setPlayerInput(""); setNewPlayer(""); setNewGender("m");
-    setNewStrength(3); setRoundCount(5); setCourtCount(DEFAULT_COURTS);
-    setCourtNames(buildDefaultCourtNames(DEFAULT_COURTS)); setStartTime("18:00");
-    setMatchDuration(35); setBreakDuration(10);
+    setPlayers(DEFAULT_STATE.players); setRounds(DEFAULT_STATE.rounds); setPlayerInput(DEFAULT_STATE.playerInput); setNewPlayer(DEFAULT_STATE.newPlayer); setNewGender(DEFAULT_STATE.newGender);
+    setNewStrength(DEFAULT_STATE.newStrength); setRoundCount(DEFAULT_STATE.roundCount); setCourtCount(DEFAULT_STATE.courtCount);
+    setCourtNames(buildDefaultCourtNames(DEFAULT_COURTS)); setStartTime(DEFAULT_STATE.startTime);
+    setMatchDuration(DEFAULT_STATE.matchDuration); setBreakDuration(DEFAULT_STATE.breakDuration);
   }
 
   function updateMatchField(roundId: string, matchId: string, field: "result" | "notes", value: string) {
