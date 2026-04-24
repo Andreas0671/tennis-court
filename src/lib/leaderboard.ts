@@ -29,8 +29,12 @@ export function computeLeaderboard(players: Player[], rounds: Round[]): PlayerSt
   const statsMap = Object.fromEntries(players.map((p) => [p.id, createEmptyStats(p)]));
 
   for (const round of rounds) {
-    for (const p of round.benched) {
-      if (statsMap[p.id]) statsMap[p.id].pauseRounds += 1;
+    const hasRoundResult = round.matches.some((match) => parseResultInput(match.result));
+
+    if (hasRoundResult) {
+      for (const p of round.benched) {
+        if (statsMap[p.id]) statsMap[p.id].pauseRounds += 1;
+      }
     }
 
     for (const match of round.matches) {
