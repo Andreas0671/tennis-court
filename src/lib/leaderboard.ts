@@ -26,12 +26,12 @@ export function computeLeaderboard(players: Player[], rounds: Round[]): PlayerSt
     }
 
     for (const match of round.matches) {
+      const parsed = parseResultInput(match.result);
+      if (!parsed) continue;
+
       for (const p of [...match.teamA, ...match.teamB]) {
         if (statsMap[p.id]) statsMap[p.id].playedRounds += 1;
       }
-
-      const parsed = parseResultInput(match.result);
-      if (!parsed) continue;
 
       for (const p of match.teamA) {
         const e = statsMap[p.id];

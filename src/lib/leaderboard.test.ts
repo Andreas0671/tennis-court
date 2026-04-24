@@ -48,4 +48,13 @@ describe("computeLeaderboard", () => {
     const eva = board.find((e) => e.id === "e");
     expect(eva?.pauseRounds).toBe(1);
   });
+
+  it("counts played rounds only when a result is present", () => {
+    const players = [makePlayer("a", "Alice"), makePlayer("b", "Bob"), makePlayer("c", "Clara"), makePlayer("d", "David")];
+    const board = computeLeaderboard(players, [makeRound("")]);
+
+    for (const player of players) {
+      expect(board.find((entry) => entry.id === player.id)?.playedRounds).toBe(0);
+    }
+  });
 });
