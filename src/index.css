@@ -128,3 +128,26 @@
     @apply font-sans;
     }
 }
+
+@media print {
+  body[data-printing-section="true"] * {
+    visibility: hidden !important;
+  }
+
+  body[data-printing-section="true"] [data-print-target="true"],
+  body[data-printing-section="true"] [data-print-target="true"] * {
+    visibility: visible !important;
+  }
+
+  body[data-printing-section="true"] [data-print-target="true"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 1.5rem;
+    background: white;
+  }
+
+  [data-print-hide="true"] {
+    display: none !important;
+  }
+}
