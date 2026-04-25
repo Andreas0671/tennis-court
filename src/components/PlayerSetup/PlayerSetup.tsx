@@ -1,4 +1,4 @@
-import type { Player } from "@/types";
+import type { Gender, Player } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,14 @@ interface PlayerSetupProps {
   players: Player[];
   playerInput: string;
   newPlayer: string;
-  newGender: string;
+  newGender: Gender;
   newStrength: number;
   stats: { men: number; women: number; matchesPerRound: number; benchedPerRound: number };
   roundCount: number;
   readOnly?: boolean;
   onPlayerInputChange: (v: string) => void;
   onNewPlayerChange: (v: string) => void;
-  onNewGenderChange: (v: string) => void;
+  onNewGenderChange: (v: Gender) => void;
   onNewStrengthChange: (v: number) => void;
   onRoundCountChange: (v: string) => void;
   onAddSingle: () => void;
@@ -52,7 +52,7 @@ export function PlayerSetup(props: PlayerSetupProps) {
             />
             <select
               value={newGender}
-              onChange={(e) => props.onNewGenderChange(e.target.value)}
+              onChange={(e) => props.onNewGenderChange(e.target.value as Gender)}
               className="rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm"
               disabled={readOnly}
             >

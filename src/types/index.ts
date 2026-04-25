@@ -42,6 +42,7 @@ export interface PlayerStats extends Player {
 export interface TournamentHistory {
   played: Record<string, number>;
   pause: Record<string, number>;
+  teamPairs: Record<string, number>;
 }
 
 export interface ParsedResult {

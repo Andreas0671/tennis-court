@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { LuCalendarRange, LuLogIn, LuTrophy } from "react-icons/lu";
 import { AppHeader } from "@/components/AppHeader/AppHeader";
 import { CourtSetup } from "@/components/CourtSetup/CourtSetup";
@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTournament } from "@/hooks/useTournament";
 import { createDefaultTournamentState } from "@/lib/tournamentStorage";
 import { ApiError, checkSession, getAdminTournament, getPublicTournament, login, logout, saveTournament } from "@/lib/tournamentApi";
+import type { FormEvent } from "react";
 import type { SavedTournament } from "@/types";
 
 const DEFAULT_SLUG = "clubabend";

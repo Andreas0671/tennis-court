@@ -2,9 +2,12 @@ import { createDefaultTournamentState } from "@/lib/tournamentStorage";
 import type { SavedTournament, TournamentFormState } from "@/types";
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number) {
+  public readonly status: number;
+
+  constructor(message: string, status: number) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
   }
 }
 
