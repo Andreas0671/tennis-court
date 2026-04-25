@@ -10,6 +10,7 @@ interface CourtSetupProps {
   matchDuration: number;
   breakDuration: number;
   totalEventEnd: string;
+  readOnly?: boolean;
   onCourtCountChange: (v: string) => void;
   onCourtNameChange: (index: number, v: string) => void;
   onStartTimeChange: (v: string) => void;
@@ -18,7 +19,7 @@ interface CourtSetupProps {
 }
 
 export function CourtSetup(props: CourtSetupProps) {
-  const { courtNames, startTime, matchDuration, breakDuration, courtCount, totalEventEnd } = props;
+  const { courtNames, startTime, matchDuration, breakDuration, courtCount, totalEventEnd, readOnly = false } = props;
 
   return (
     <Card className="rounded-3xl border-0 bg-white shadow-sm">
@@ -29,19 +30,19 @@ export function CourtSetup(props: CourtSetupProps) {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Label>Anzahl Courts</Label>
-            <Input type="number" min={1} max={12} value={courtCount} onChange={(e) => props.onCourtCountChange(e.target.value)} className="mt-2 rounded-2xl" />
+            <Input type="number" min={1} max={12} value={courtCount} onChange={(e) => props.onCourtCountChange(e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
           </div>
           <div>
             <Label>Startzeit</Label>
-            <Input type="time" value={startTime} onChange={(e) => props.onStartTimeChange(e.target.value)} className="mt-2 rounded-2xl" />
+            <Input type="time" value={startTime} onChange={(e) => props.onStartTimeChange(e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
           </div>
           <div>
             <Label>Matchdauer (Min.)</Label>
-            <Input type="number" min={10} max={180} value={matchDuration} onChange={(e) => props.onMatchDurationChange(e.target.value)} className="mt-2 rounded-2xl" />
+            <Input type="number" min={10} max={180} value={matchDuration} onChange={(e) => props.onMatchDurationChange(e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
           </div>
           <div>
             <Label>Pause (Min.)</Label>
-            <Input type="number" min={0} max={60} value={breakDuration} onChange={(e) => props.onBreakDurationChange(e.target.value)} className="mt-2 rounded-2xl" />
+            <Input type="number" min={0} max={60} value={breakDuration} onChange={(e) => props.onBreakDurationChange(e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
           </div>
         </div>
 
@@ -51,7 +52,7 @@ export function CourtSetup(props: CourtSetupProps) {
             Ablauf
           </div>
           <div className="text-sm text-slate-700">
-            Start: <strong>{startTime}</strong> · Ende ca.: <strong>{totalEventEnd}</strong>
+            Start: <strong>{startTime}</strong> - Ende ca.: <strong>{totalEventEnd}</strong>
           </div>
         </div>
 
@@ -59,7 +60,7 @@ export function CourtSetup(props: CourtSetupProps) {
           {courtNames.map((name, i) => (
             <div key={`court-${i}`}>
               <Label>{`Court ${i + 1}`}</Label>
-              <Input value={name} onChange={(e) => props.onCourtNameChange(i, e.target.value)} className="mt-2 rounded-2xl" />
+              <Input value={name} onChange={(e) => props.onCourtNameChange(i, e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
             </div>
           ))}
         </div>

@@ -51,3 +51,25 @@ export interface ParsedResult {
   gamesB: number;
   winner: "A" | "B" | "draw";
 }
+
+export interface TournamentFormState {
+  players: Player[];
+  rounds: Round[];
+  playerInput: string;
+  newPlayer: string;
+  newGender: Gender;
+  newStrength: number;
+  roundCount: number;
+  courtCount: number;
+  courtNames: string[];
+  startTime: string;
+  matchDuration: number;
+  breakDuration: number;
+}
+
+export interface SavedTournament {
+  slug: string;
+  title: string;
+  updatedAt: string | null;
+  state: TournamentFormState;
+}

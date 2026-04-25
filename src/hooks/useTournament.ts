@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Player, Round } from "@/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Player, Round, TournamentFormState } from "@/types";
 import { safeRandomId, buildDefaultCourtNames, addMinutesToTime } from "@/lib/utils";
 import { createSchedule } from "@/lib/tournament";
 import { computeLeaderboard } from "@/lib/leaderboard";
@@ -135,14 +135,45 @@ export function useTournament() {
     ));
   }
 
+  const replaceState = useCallback((nextState: TournamentFormState) => {
+    const fallback = createDefaultTournamentState();
+    setPlayers(Array.isArray(nextState.players) ? nextState.players : fallback.players);
+    setRounds(Array.isArray(nextState.rounds) ? nextState.rounds : fallback.rounds);
+    setPlayerInput(typeof nextState.playerInput === "string" ? nextState.playerInput : fallback.playerInput);
+    setNewPlayer(typeof nextState.newPlayer === "string" ? nextState.newPlayer : fallback.newPlayer);
+    setNewGender(nextState.newGender === "m" || nextState.newGender === "w" || nextState.newGender === "o" ? nextState.newGender : fallback.newGender);
+    setNewStrength(typeof nextState.newStrength === "number" ? nextState.newStrength : fallback.newStrength);
+    setRoundCount(typeof nextState.roundCount === "number" ? nextState.roundCount : fallback.roundCount);
+    setCourtCount(typeof nextState.courtCount === "number" ? nextState.courtCount : fallback.courtCount);
+    setCourtNames(Array.isArray(nextState.courtNames) ? nextState.courtNames : fallback.courtNames);
+    setStartTime(typeof nextState.startTime === "string" ? nextState.startTime : fallback.startTime);
+    setMatchDuration(typeof nextState.matchDuration === "number" ? nextState.matchDuration : fallback.matchDuration);
+    setBreakDuration(typeof nextState.breakDuration === "number" ? nextState.breakDuration : fallback.breakDuration);
+  }, []);
+
+  const state: TournamentFormState = {
+    players,
+    rounds,
+    playerInput,
+    newPlayer,
+    newGender,
+    newStrength,
+    roundCount,
+    courtCount,
+    courtNames,
+    startTime,
+    matchDuration,
+    breakDuration,
+  };
+
   return {
     players, rounds, playerInput, newPlayer, newGender, newStrength,
     roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration,
-    leaderboard, winner, totalEventEnd, playerStats,
+    state, leaderboard, winner, totalEventEnd, playerStats,
     setPlayerInput, setNewPlayer, setNewGender, setNewStrength, setRoundCount,
     setStartTime, setMatchDuration, setBreakDuration,
     addSinglePlayer, addBulkPlayers, removePlayer,
     updateCourtCount, updateCourtName, generateDemo, generateTournament,
-    resetResults, clearAll, updateMatchField,
+    resetResults, clearAll, updateMatchField, replaceState,
   };
 }

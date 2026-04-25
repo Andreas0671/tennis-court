@@ -4,10 +4,11 @@ import type { Match, Round } from "@/types";
 
 interface RoundPanelProps {
   round: Round;
+  readOnly?: boolean;
   onFieldChange: (roundId: string, matchId: string, field: "result" | "notes", value: string) => void;
 }
 
-export function RoundPanel({ round, onFieldChange }: RoundPanelProps) {
+export function RoundPanel({ round, readOnly = false, onFieldChange }: RoundPanelProps) {
   return (
     <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-5 shadow-sm">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
@@ -23,7 +24,7 @@ export function RoundPanel({ round, onFieldChange }: RoundPanelProps) {
 
       <div className="grid gap-5 xl:grid-cols-2">
         {round.matches.map((match: Match) => (
-          <MatchCard key={match.id} match={match} roundId={round.id} onFieldChange={onFieldChange} />
+          <MatchCard key={match.id} match={match} roundId={round.id} readOnly={readOnly} onFieldChange={onFieldChange} />
         ))}
       </div>
 

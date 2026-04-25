@@ -1,22 +1,7 @@
 import { buildDefaultCourtNames } from "@/lib/utils";
-import type { Gender, Player, Round } from "@/types";
+import type { TournamentFormState } from "@/types";
 
 export const TOURNAMENT_STORAGE_KEY = "tennis-court:tournament";
-
-export interface TournamentFormState {
-  players: Player[];
-  rounds: Round[];
-  playerInput: string;
-  newPlayer: string;
-  newGender: Gender;
-  newStrength: number;
-  roundCount: number;
-  courtCount: number;
-  courtNames: string[];
-  startTime: string;
-  matchDuration: number;
-  breakDuration: number;
-}
 
 const DEFAULT_COURTS = 2;
 

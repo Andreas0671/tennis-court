@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .tools/
+
+# Local deployment secrets
+public/api/config.php
