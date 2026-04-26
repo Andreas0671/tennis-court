@@ -44,6 +44,36 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Es ist ein unbekannter Fehler aufgetreten.";
 }
 
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+
+  while (y !== 0) {
+    const rest = x % y;
+    x = y;
+    y = rest;
+  }
+
+  return x || 1;
+}
+
+function equalGamesRoundInfo(players: SavedTournament["state"]["players"], courtCount: number): string {
+  const men = players.filter((player) => player.gender === "m").length;
+  const women = players.filter((player) => player.gender === "w").length;
+  const other = players.length - men - women;
+  const matchCount = Math.min(Math.floor(men / 2), Math.floor(women / 2), Math.max(1, Number(courtCount) || 1));
+  const activePlayersPerRound = matchCount * 4;
+
+  if (players.length < 4 || matchCount === 0) return "nicht berechenbar";
+  if (other > 0) return "nicht moeglich mit divers/ohne Zuordnung";
+  if (men !== women) return "nicht moeglich bei ungleicher Damen-/Herrenanzahl";
+
+  const rounds = players.length / gcd(players.length, activePlayersPerRound);
+  const gamesPerPlayer = (rounds * activePlayersPerRound) / players.length;
+
+  return `${rounds} ${rounds === 1 ? "Runde" : "Runden"} bei ${players.length} Spielern (${gamesPerPlayer} ${gamesPerPlayer === 1 ? "Spiel" : "Spiele"} pro Person)`;
+}
+
 const noop = () => {};
 
 export default function App() {
@@ -227,6 +257,8 @@ export default function App() {
     return t.rounds[0]?.id;
   }, [activeRoundId, t.rounds]);
 
+  const equalRoundInfo = useMemo(() => equalGamesRoundInfo(t.players, t.courtCount), [t.players, t.courtCount]);
+
   if (isAdminRoute && ready && !adminUser) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#14532d,_#052e16_55%,_#022c22)] p-6 text-slate-900">
@@ -309,6 +341,7 @@ export default function App() {
               </div>
               <div><strong>Titel:</strong> {canEdit ? <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2 max-w-2xl rounded-2xl bg-white" /> : title}</div>
               <div><strong>Letzte Speicherung:</strong> {formatUpdatedAt(updatedAt)}</div>
+              <div><strong>Runden fuer gleiche Spielanzahl:</strong> {equalRoundInfo}</div>
               {status && <div>{status}</div>}
               {error && <div className="text-rose-700">{error}</div>}
             </div>
