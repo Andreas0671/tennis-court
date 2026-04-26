@@ -35,6 +35,13 @@ describe("computeLeaderboard", () => {
     expect(clara?.points).toBe(0);
   });
 
+  it("counts played rounds only when a result is entered", () => {
+    const players = [makePlayer("a", "Alice"), makePlayer("b", "Bob"), makePlayer("c", "Clara"), makePlayer("d", "David")];
+    const board = computeLeaderboard(players, [makeRound("")]);
+
+    expect(board.every((entry) => entry.playedRounds === 0)).toBe(true);
+  });
+
   it("sorts by points descending", () => {
     const players = [makePlayer("a", "Alice"), makePlayer("b", "Bob"), makePlayer("c", "Clara"), makePlayer("d", "David")];
     const board = computeLeaderboard(players, [makeRound("6:4")]);
@@ -47,5 +54,15 @@ describe("computeLeaderboard", () => {
     const board = computeLeaderboard(players, [round]);
     const eva = board.find((e) => e.id === "e");
     expect(eva?.pauseRounds).toBe(1);
+  });
+
+  it("counts pause rounds even when no match result is entered", () => {
+    const players = [makePlayer("a", "Alice"), makePlayer("b", "Bob"), makePlayer("c", "Clara"), makePlayer("d", "David"), makePlayer("e", "Eva")];
+    const round: Round = { ...makeRound(""), benched: [makePlayer("e", "Eva")] };
+    const board = computeLeaderboard(players, [round]);
+    const eva = board.find((e) => e.id === "e");
+
+    expect(eva?.pauseRounds).toBe(1);
+    expect(eva?.playedRounds).toBe(0);
   });
 });

@@ -1,29 +1,41 @@
 <?php
 
-declare(strict_types=1);
+error_reporting(E_ALL);
 
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-function json_response(array $payload, int $status = 200): never
+function json_response(array $payload, int $status = 200)
 {
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-function json_error(string $message, int $status): never
+function json_error(string $message, int $status)
 {
     json_response(['error' => $message], $status);
 }
 
 function config(): array
 {
-    $path = __DIR__ . '/config.php';
-    if (!is_file($path)) {
-        json_error('API config.php fehlt. config.example.php kopieren und Zugangsdaten eintragen.', 500);
+    $paths = [
+        __DIR__ . '/private/config.php',
+        __DIR__ . '/config.php',
+    ];
+    $path = null;
+
+    foreach ($paths as $candidate) {
+        if (is_file($candidate)) {
+            $path = $candidate;
+            break;
+        }
+    }
+
+    if ($path === null) {
+        json_error('API config.php fehlt. Erwartet in api/private/config.php oder api/config.php.', 500);
     }
 
     $config = require $path;
@@ -42,18 +54,29 @@ function db(): PDO
     }
 
     $db = config()['db'] ?? [];
-    $pdo = new PDO((string) ($db['dsn'] ?? ''), (string) ($db['user'] ?? ''), (string) ($db['password'] ?? ''), [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS tournaments (
-            slug VARCHAR(120) PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            state_json LONGTEXT NOT NULL,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
-    );
+    $dsn = (string) ($db['dsn'] ?? '');
+    $user = (string) ($db['user'] ?? '');
+
+    if ($dsn === '' || $user === '') {
+        json_error('Datenbank-Konfiguration ist unvollstaendig: db.dsn und db.user muessen gesetzt sein.', 500);
+    }
+
+    try {
+        $pdo = new PDO($dsn, $user, (string) ($db['password'] ?? ''), [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS tournaments (
+                slug VARCHAR(120) PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                state_json LONGTEXT NOT NULL,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+        );
+    } catch (Throwable $error) {
+        json_error('Datenbankfehler: ' . $error->getMessage(), 500);
+    }
 
     return $pdo;
 }

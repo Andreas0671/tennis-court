@@ -22,10 +22,23 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown;
+
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    if (!response.ok) {
+      throw new ApiError(text || "Serverantwort war kein gueltiges JSON.", response.status);
+    }
+    throw new ApiError("Serverantwort war kein gueltiges JSON.", response.status);
+  }
 
   if (!response.ok) {
-    throw new ApiError(data?.error ?? "Unbekannter Serverfehler", response.status);
+    const message =
+      data && typeof data === "object" && "error" in data && typeof data.error === "string"
+        ? data.error
+        : "Unbekannter Serverfehler";
+    throw new ApiError(message, response.status);
   }
 
   return data as T;

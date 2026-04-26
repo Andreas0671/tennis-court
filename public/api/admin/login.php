@@ -8,8 +8,14 @@ $username = (string) ($body['username'] ?? '');
 $password = (string) ($body['password'] ?? '');
 $expectedUser = (string) ($admin['username'] ?? '');
 $passwordHash = (string) ($admin['password_hash'] ?? '');
+$passwordSha256 = (string) ($admin['password_sha256'] ?? '');
 
-if (!hash_equals($expectedUser, $username) || !password_verify($password, $passwordHash)) {
+$validPassword = $passwordHash !== '' && password_verify($password, $passwordHash);
+if (!$validPassword && $passwordSha256 !== '') {
+    $validPassword = hash_equals($passwordSha256, hash('sha256', $password));
+}
+
+if (!hash_equals($expectedUser, $username) || !$validPassword) {
     json_error('Benutzername oder Passwort ist falsch.', 401);
 }
 
