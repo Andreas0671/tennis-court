@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 
 interface AppHeaderProps {
   mode?: "admin" | "view";
+  compact?: boolean;
   adminUsername?: string | null;
   isDirty?: boolean;
   isSaving?: boolean;
@@ -19,6 +20,7 @@ interface AppHeaderProps {
 
 export function AppHeader({
   mode = "admin",
+  compact = false,
   adminUsername,
   isDirty = false,
   isSaving = false,
@@ -35,15 +37,15 @@ export function AppHeader({
   const isAdmin = mode === "admin";
 
   return (
-    <div className="bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 p-8 text-white">
+    <div className={`bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 text-white ${compact ? "p-4 sm:p-6 md:p-8" : "p-8"}`}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em]">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] sm:px-4 sm:tracking-[0.2em]">
             <LuSparkles className="h-4 w-4" />
             {isAdmin ? `Admin${adminUsername ? `: ${adminUsername}` : ""}` : "Live-Ansicht"}
           </div>
-          <h1 className="text-3xl font-bold md:text-4xl">Vierer-Kombinationen fuer Tennis-Doppel</h1>
-          <p className="mt-3 max-w-3xl text-sm text-emerald-50 md:text-base">
+          <h1 className={`${compact ? "text-2xl sm:text-3xl md:text-4xl" : "text-3xl md:text-4xl"} font-bold`}>Vierer-Kombinationen fuer Tennis-Doppel</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-emerald-50 md:text-base">
             {isAdmin
               ? "Plane lockere Doppelrunden mit wechselnden Partnern, Court-Zuweisung, Pausenrotation und Gesamtwertung."
               : "Live-Rundenplan mit Ergebnissen, Aussetzern und Gesamtwertung."}
@@ -80,13 +82,13 @@ export function AppHeader({
           ) : (
             <>
               {onRefresh && (
-                <Button onClick={onRefresh} className="rounded-2xl bg-white text-emerald-800 hover:bg-emerald-50">
+                <Button onClick={onRefresh} className="w-full rounded-2xl bg-white text-emerald-800 hover:bg-emerald-50 sm:w-auto">
                   <LuRefreshCw className="mr-2 h-4 w-4" />
                   Aktualisieren
                 </Button>
               )}
               {onOpenAdmin && (
-                <Button variant="secondary" onClick={onOpenAdmin} className="rounded-2xl bg-emerald-950/20 text-white hover:bg-emerald-950/30">
+                <Button variant="secondary" onClick={onOpenAdmin} className="w-full rounded-2xl bg-emerald-950/20 text-white hover:bg-emerald-950/30 sm:w-auto">
                   Admin-Modus
                 </Button>
               )}

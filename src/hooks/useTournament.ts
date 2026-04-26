@@ -7,15 +7,54 @@ import { createDefaultTournamentState, loadTournamentState, saveTournamentState 
 
 const DEFAULT_STATE = createDefaultTournamentState();
 const DEFAULT_COURTS = DEFAULT_STATE.courtCount;
+const MAX_STRENGTH = 4;
 
 const DEMO_NAMES = [
   "Alexander", "Sophie", "Jonas", "Laura", "Ben", "Marie", "Lukas", "Anna",
   "Tim", "Julia", "Felix", "Leonie", "Paul", "Mia", "Noah", "Emma", "David", "Nina", "Finn", "Clara",
 ];
 
+function clampStrength(value: number) {
+  return Math.max(1, Math.min(MAX_STRENGTH, Number(value) || DEFAULT_STATE.newStrength));
+}
+
+function parseGender(value: string): Player["gender"] | null {
+  const normalized = value.trim().toLowerCase();
+  if (["m", "maennlich", "männlich", "mann", "male", "herr"].includes(normalized)) return "m";
+  if (["w", "weiblich", "frau", "female", "dame"].includes(normalized)) return "w";
+  if (["o", "divers", "other"].includes(normalized)) return "o";
+  return null;
+}
+
+function parseBulkPlayersInput(input: string, defaultGender: Player["gender"], defaultStrength: number) {
+  const lines = input.split(/\n/).map((line) => line.trim()).filter(Boolean);
+  const rows = lines.length > 0 ? lines : [input.trim()].filter(Boolean);
+
+  return rows.flatMap((row) => {
+    const parts = row.split(/[;,]/).map((part) => part.trim()).filter(Boolean);
+    const gender = parts.slice(1).map(parseGender).find((value): value is Player["gender"] => value !== null);
+    const strength = parts.slice(1).map((part) => Number(part.match(/\d+/)?.[0])).find((value) => Number.isFinite(value));
+
+    if (parts.length > 1 && (gender || strength)) {
+      return [{
+        name: parts[0],
+        gender: gender ?? defaultGender,
+        strength: clampStrength(strength ?? defaultStrength),
+      }];
+    }
+
+    return row.split(/\n|,|;/).map((name) => ({
+      name: name.trim(),
+      gender: defaultGender,
+      strength: clampStrength(defaultStrength),
+    })).filter((player) => player.name);
+  });
+}
+
 export function useTournament() {
   const [initialState] = useState(loadTournamentState);
 
+  const [tournamentName, setTournamentName] = useState(initialState.tournamentName);
   const [players, setPlayers] = useState<Player[]>(initialState.players);
   const [rounds, setRounds] = useState<Round[]>(initialState.rounds);
   const [playerInput, setPlayerInput] = useState(initialState.playerInput);
@@ -31,6 +70,7 @@ export function useTournament() {
 
   useEffect(() => {
     saveTournamentState({
+      tournamentName,
       players,
       rounds,
       playerInput,
@@ -44,7 +84,7 @@ export function useTournament() {
       matchDuration,
       breakDuration,
     });
-  }, [players, rounds, playerInput, newPlayer, newGender, newStrength, roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration]);
+  }, [tournamentName, players, rounds, playerInput, newPlayer, newGender, newStrength, roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration]);
 
   const leaderboard = useMemo(() => computeLeaderboard(players, rounds), [players, rounds]);
   const winner = leaderboard.find((e) => e.points > 0) ?? null;
@@ -67,16 +107,16 @@ export function useTournament() {
     if (!name || players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
       setNewPlayer(""); return;
     }
-    setPlayers((prev) => [...prev, { id: safeRandomId(), name, gender: newGender as Player["gender"], strength: Number(newStrength) }]);
+    setPlayers((prev) => [...prev, { id: safeRandomId(), name, gender: newGender as Player["gender"], strength: clampStrength(newStrength) }]);
     setNewPlayer("");
     setRounds([]);
   }
 
   function addBulkPlayers() {
-    const names = playerInput.split(/\n|,|;/).map((n) => n.trim()).filter(Boolean);
+    const parsedPlayers = parseBulkPlayersInput(playerInput, newGender, newStrength);
     const existing = new Set(players.map((p) => p.name.toLowerCase()));
-    const imported = names.filter((n) => !existing.has(n.toLowerCase()))
-      .map((name) => ({ id: safeRandomId(), name, gender: "m" as Player["gender"], strength: 3 }));
+    const imported = parsedPlayers.filter((player) => !existing.has(player.name.toLowerCase()))
+      .map((player) => ({ id: safeRandomId(), ...player }));
     setPlayers((prev) => [...prev, ...imported]);
     setPlayerInput("");
     setRounds([]);
@@ -104,7 +144,7 @@ export function useTournament() {
   }
 
   function generateDemo() {
-    setPlayers(DEMO_NAMES.map((name, i) => ({ id: safeRandomId(), name, gender: i % 2 === 0 ? "m" : "w", strength: (i % 5) + 1 })));
+    setPlayers(DEMO_NAMES.map((name, i) => ({ id: safeRandomId(), name, gender: i % 2 === 0 ? "m" : "w", strength: (i % MAX_STRENGTH) + 1 })));
     setRounds([]);
   }
 
@@ -123,7 +163,7 @@ export function useTournament() {
   }
 
   function clearAll() {
-    setPlayers(DEFAULT_STATE.players); setRounds(DEFAULT_STATE.rounds); setPlayerInput(DEFAULT_STATE.playerInput); setNewPlayer(DEFAULT_STATE.newPlayer); setNewGender(DEFAULT_STATE.newGender);
+    setTournamentName(DEFAULT_STATE.tournamentName); setPlayers(DEFAULT_STATE.players); setRounds(DEFAULT_STATE.rounds); setPlayerInput(DEFAULT_STATE.playerInput); setNewPlayer(DEFAULT_STATE.newPlayer); setNewGender(DEFAULT_STATE.newGender);
     setNewStrength(DEFAULT_STATE.newStrength); setRoundCount(DEFAULT_STATE.roundCount); setCourtCount(DEFAULT_STATE.courtCount);
     setCourtNames(buildDefaultCourtNames(DEFAULT_COURTS)); setStartTime(DEFAULT_STATE.startTime);
     setMatchDuration(DEFAULT_STATE.matchDuration); setBreakDuration(DEFAULT_STATE.breakDuration);
@@ -137,12 +177,13 @@ export function useTournament() {
 
   const replaceState = useCallback((nextState: TournamentFormState) => {
     const fallback = createDefaultTournamentState();
-    setPlayers(Array.isArray(nextState.players) ? nextState.players : fallback.players);
+    setTournamentName(typeof nextState.tournamentName === "string" ? nextState.tournamentName : fallback.tournamentName);
+    setPlayers(Array.isArray(nextState.players) ? nextState.players.map((player) => ({ ...player, strength: clampStrength(player.strength) })) : fallback.players);
     setRounds(Array.isArray(nextState.rounds) ? nextState.rounds : fallback.rounds);
     setPlayerInput(typeof nextState.playerInput === "string" ? nextState.playerInput : fallback.playerInput);
     setNewPlayer(typeof nextState.newPlayer === "string" ? nextState.newPlayer : fallback.newPlayer);
     setNewGender(nextState.newGender === "m" || nextState.newGender === "w" || nextState.newGender === "o" ? nextState.newGender : fallback.newGender);
-    setNewStrength(typeof nextState.newStrength === "number" ? nextState.newStrength : fallback.newStrength);
+    setNewStrength(typeof nextState.newStrength === "number" ? clampStrength(nextState.newStrength) : fallback.newStrength);
     setRoundCount(typeof nextState.roundCount === "number" ? nextState.roundCount : fallback.roundCount);
     setCourtCount(typeof nextState.courtCount === "number" ? nextState.courtCount : fallback.courtCount);
     setCourtNames(Array.isArray(nextState.courtNames) ? nextState.courtNames : fallback.courtNames);
@@ -152,6 +193,7 @@ export function useTournament() {
   }, []);
 
   const state: TournamentFormState = {
+    tournamentName,
     players,
     rounds,
     playerInput,
@@ -167,10 +209,10 @@ export function useTournament() {
   };
 
   return {
-    players, rounds, playerInput, newPlayer, newGender, newStrength,
+    tournamentName, players, rounds, playerInput, newPlayer, newGender, newStrength,
     roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration,
     state, leaderboard, winner, totalEventEnd, playerStats,
-    setPlayerInput, setNewPlayer, setNewGender, setNewStrength, setRoundCount,
+    setTournamentName, setPlayerInput, setNewPlayer, setNewGender, setNewStrength, setRoundCount,
     setStartTime, setMatchDuration, setBreakDuration,
     addSinglePlayer, addBulkPlayers, removePlayer,
     updateCourtCount, updateCourtName, generateDemo, generateTournament,

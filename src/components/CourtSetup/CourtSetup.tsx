@@ -11,6 +11,7 @@ interface CourtSetupProps {
   breakDuration: number;
   totalEventEnd: string;
   readOnly?: boolean;
+  hideCourtNames?: boolean;
   onCourtCountChange: (v: string) => void;
   onCourtNameChange: (index: number, v: string) => void;
   onStartTimeChange: (v: string) => void;
@@ -19,7 +20,7 @@ interface CourtSetupProps {
 }
 
 export function CourtSetup(props: CourtSetupProps) {
-  const { courtNames, startTime, matchDuration, breakDuration, courtCount, totalEventEnd, readOnly = false } = props;
+  const { courtNames, startTime, matchDuration, breakDuration, courtCount, totalEventEnd, readOnly = false, hideCourtNames = false } = props;
 
   return (
     <Card className="rounded-3xl border-0 bg-white shadow-sm">
@@ -56,14 +57,16 @@ export function CourtSetup(props: CourtSetupProps) {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          {courtNames.map((name, i) => (
-            <div key={`court-${i}`}>
-              <Label>{`Court ${i + 1}`}</Label>
-              <Input value={name} onChange={(e) => props.onCourtNameChange(i, e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
-            </div>
-          ))}
-        </div>
+        {!hideCourtNames && (
+          <div className="grid gap-3 md:grid-cols-2">
+            {courtNames.map((name, i) => (
+              <div key={`court-${i}`}>
+                <Label>{`Court ${i + 1}`}</Label>
+                <Input value={name} onChange={(e) => props.onCourtNameChange(i, e.target.value)} className="mt-2 rounded-2xl" disabled={readOnly} />
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

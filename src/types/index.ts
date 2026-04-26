@@ -54,6 +54,7 @@ export interface ParsedResult {
 }
 
 export interface TournamentFormState {
+  tournamentName: string;
   players: Player[];
   rounds: Round[];
   playerInput: string;

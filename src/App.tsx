@@ -67,17 +67,22 @@ export default function App() {
   const [loginName, setLoginName] = useState("Andreas");
   const [password, setPassword] = useState("");
   const [lastSavedState, setLastSavedState] = useState(() => JSON.stringify(createDefaultTournamentState()));
+  const [lastSavedTitle, setLastSavedTitle] = useState(DEFAULT_TITLE);
   const [activeRoundId, setActiveRoundId] = useState<string | undefined>(undefined);
 
   const isAdminRoute = route.mode === "admin";
   const canEdit = isAdminRoute && !!adminUser;
-  const isDirty = canEdit && !loading && JSON.stringify(t.state) !== lastSavedState;
+  const isDirty = canEdit && !loading && (
+    JSON.stringify(t.state) !== lastSavedState ||
+    title !== lastSavedTitle
+  );
 
   const applyTournament = useCallback((tournament: SavedTournament, message?: string) => {
     setTitle(tournament.title || DEFAULT_TITLE);
     setUpdatedAt(tournament.updatedAt);
     replaceState(tournament.state);
     setLastSavedState(JSON.stringify(tournament.state));
+    setLastSavedTitle(tournament.title || DEFAULT_TITLE);
     setActiveRoundId(tournament.state.rounds[0]?.id);
     if (message) setStatus(message);
   }, [replaceState]);
@@ -104,8 +109,10 @@ export default function App() {
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         const emptyState = createDefaultTournamentState();
+        emptyState.tournamentName = slug;
         setTitle(DEFAULT_TITLE);
         setUpdatedAt(null);
+        setLastSavedTitle(DEFAULT_TITLE);
         replaceState(emptyState);
         setLastSavedState(JSON.stringify(emptyState));
         setActiveRoundId(undefined);
@@ -157,8 +164,10 @@ export default function App() {
           await loadAdmin(route.slug);
         } else {
           const emptyState = createDefaultTournamentState();
+          emptyState.tournamentName = route.slug;
           replaceState(emptyState);
           setLastSavedState(JSON.stringify(emptyState));
+          setLastSavedTitle(DEFAULT_TITLE);
           setLoading(false);
         }
       } catch (err) {
@@ -272,11 +281,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#14532d,_#052e16_55%,_#022c22)] p-6 text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <section className="overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+    <div className={`min-h-screen bg-[radial-gradient(circle_at_top,_#14532d,_#052e16_55%,_#022c22)] text-slate-900 ${canEdit ? "p-6" : "p-2 sm:p-4 md:p-6"}`}>
+      <div className={`mx-auto max-w-7xl ${canEdit ? "space-y-6" : "space-y-3 sm:space-y-5 md:space-y-6"}`}>
+        <section className={`overflow-hidden bg-white shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
           <AppHeader
             mode={canEdit ? "admin" : "view"}
+            compact={!canEdit}
             adminUsername={adminUser}
             isDirty={isDirty}
             isSaving={saving}
@@ -290,9 +300,14 @@ export default function App() {
             onOpenAdmin={() => navigate({ mode: "admin", slug: route.slug })}
             onLogout={() => void handleLogout()}
           />
-          <div className="grid gap-4 border-b border-emerald-100 bg-emerald-50/70 px-6 py-4 text-sm text-emerald-950 md:grid-cols-[1fr_auto]">
+          <div className={`grid gap-4 border-b border-emerald-100 bg-emerald-50/70 text-sm text-emerald-950 md:grid-cols-[1fr_auto] ${canEdit ? "px-6 py-4" : "px-4 py-3 sm:px-6 sm:py-4"}`}>
             <div className="space-y-1">
-              <div><strong>Turnier:</strong> {route.slug}</div>
+              <div>
+                <strong>Turnier:</strong>{" "}
+                {canEdit ? (
+                  <Input value={t.tournamentName} onChange={(e) => t.setTournamentName(e.target.value)} className="mt-2 max-w-2xl rounded-2xl bg-white" />
+                ) : t.tournamentName}
+              </div>
               <div><strong>Titel:</strong> {canEdit ? <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2 max-w-2xl rounded-2xl bg-white" /> : title}</div>
               <div><strong>Letzte Speicherung:</strong> {formatUpdatedAt(updatedAt)}</div>
               {status && <div>{status}</div>}
@@ -309,7 +324,7 @@ export default function App() {
               )}
             </div>
           </div>
-          <div className="grid gap-6 p-6 lg:grid-cols-2">
+          <div className={`grid gap-4 lg:grid-cols-2 ${canEdit ? "p-6" : "p-3 sm:p-5 md:p-6"}`}>
             <PlayerSetup
               players={t.players}
               playerInput={t.playerInput}
@@ -317,6 +332,7 @@ export default function App() {
               newGender={t.newGender}
               newStrength={t.newStrength}
               readOnly={!canEdit}
+              hidePlayerListOnMobile={!canEdit}
               stats={t.playerStats}
               roundCount={t.roundCount}
               onPlayerInputChange={t.setPlayerInput}
@@ -336,6 +352,7 @@ export default function App() {
               breakDuration={t.breakDuration}
               totalEventEnd={t.totalEventEnd}
               readOnly={!canEdit}
+              hideCourtNames={!canEdit}
               onCourtCountChange={t.updateCourtCount}
               onCourtNameChange={t.updateCourtName}
               onStartTimeChange={t.setStartTime}
@@ -347,14 +364,14 @@ export default function App() {
 
         {t.winner && <WinnerBanner winner={t.winner} />}
 
-        <Card className="rounded-[2rem] border-0 bg-white/95 shadow-2xl">
-          <CardHeader>
+        <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
+          <CardHeader className={canEdit ? undefined : "px-4 py-4 sm:px-6"}>
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuCalendarRange className="h-5 w-5" />
               Rundenplan und Ergebnisse
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className={canEdit ? undefined : "px-3 pb-4 sm:px-6 sm:pb-6"}>
             {loading ? (
               <div className="rounded-2xl border border-dashed border-emerald-200 p-10 text-center text-slate-500">Daten werden geladen...</div>
             ) : t.rounds.length === 0 ? (
@@ -380,15 +397,15 @@ export default function App() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-0 bg-white/95 shadow-2xl">
-          <CardHeader>
+        <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
+          <CardHeader className={canEdit ? undefined : "px-4 py-4 sm:px-6"}>
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuTrophy className="h-5 w-5" />
               Gesamtwertung
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <LeaderboardTable leaderboard={t.leaderboard} />
+          <CardContent className={canEdit ? undefined : "px-3 pb-4 sm:px-6 sm:pb-6"}>
+            <LeaderboardTable leaderboard={t.leaderboard} showStrength={canEdit} />
           </CardContent>
         </Card>
       </div>

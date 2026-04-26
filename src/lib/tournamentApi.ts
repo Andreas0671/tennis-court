@@ -45,12 +45,15 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function normalizeTournament(tournament: SavedTournament): SavedTournament {
+  const defaultState = createDefaultTournamentState();
+
   return {
     ...tournament,
     updatedAt: tournament.updatedAt ?? null,
     state: {
-      ...createDefaultTournamentState(),
+      ...defaultState,
       ...tournament.state,
+      tournamentName: tournament.state?.tournamentName || tournament.slug || defaultState.tournamentName,
     },
   };
 }
