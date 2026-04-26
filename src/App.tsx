@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTournament } from "@/hooks/useTournament";
+import { formatUpdatedAt } from "@/lib/dateTime";
 import { createDefaultTournamentState } from "@/lib/tournamentStorage";
 import { ApiError, checkSession, getAdminTournament, getPublicTournament, login, logout, saveTournament } from "@/lib/tournamentApi";
 import type { FormEvent } from "react";
@@ -37,13 +38,6 @@ function parseRoute(pathname: string, hash: string): RouteState {
 
 function routePath(route: RouteState): string {
   return `/${route.mode}/${route.slug}`;
-}
-
-function formatUpdatedAt(value: string | null): string {
-  if (!value) return "noch nicht gespeichert";
-  const date = new Date(value.replace(" ", "T"));
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("de-DE", { dateStyle: "short", timeStyle: "short" }).format(date);
 }
 
 function errorMessage(error: unknown): string {

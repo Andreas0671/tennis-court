@@ -2,6 +2,8 @@
 
 error_reporting(E_ALL);
 
+date_default_timezone_set('UTC');
+
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -66,6 +68,7 @@ function db(): PDO
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
+        $pdo->exec("SET time_zone = '+00:00'");
         $pdo->exec(
             'CREATE TABLE IF NOT EXISTS tournaments (
                 slug VARCHAR(120) PRIMARY KEY,
@@ -121,10 +124,15 @@ function tournament_payload(array $row): array
         $state = [];
     }
 
+    $updatedAt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', (string) $row['updated_at'], new DateTimeZone('UTC'));
+    if (!$updatedAt instanceof DateTimeImmutable) {
+        $updatedAt = new DateTimeImmutable((string) $row['updated_at'], new DateTimeZone('UTC'));
+    }
+
     return [
         'slug' => (string) $row['slug'],
         'title' => (string) $row['title'],
-        'updatedAt' => (string) $row['updated_at'],
+        'updatedAt' => $updatedAt->format(DateTimeInterface::ATOM),
         'state' => $state,
     ];
 }
