@@ -83,7 +83,7 @@ describe("useTournament persistence", () => {
     expect(persisted.roundCount).toBe(5);
   });
 
-  it("adds bulk players with gender and 4-star strength values", () => {
+  it("adds bulk players with gender and 5-star strength values", () => {
     const { result } = renderHook(() => useTournament());
 
     act(() => {
@@ -97,7 +97,7 @@ describe("useTournament persistence", () => {
     expect(result.current.players).toEqual([
       expect.objectContaining({ name: "Anna", gender: "w", strength: 4 }),
       expect.objectContaining({ name: "Ben", gender: "m", strength: 3 }),
-      expect.objectContaining({ name: "Clara", gender: "w", strength: 4 }),
+      expect.objectContaining({ name: "Clara", gender: "w", strength: 5 }),
     ]);
   });
 

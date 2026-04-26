@@ -7,7 +7,7 @@ interface StarRatingProps {
 }
 
 export function StarRating({ value, onChange, interactive = false }: StarRatingProps) {
-  const stars = [1, 2, 3, 4];
+  const stars = [1, 2, 3, 4, 5];
 
   return (
     <div className="flex items-center gap-1">

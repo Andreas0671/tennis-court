@@ -23,23 +23,26 @@ function teamPairKey(playerA: Player, playerB: Player): string {
   return [playerA.id, playerB.id].sort().join("::");
 }
 
-function createMixedTeams(men: Player[], women: Player[], history: TournamentHistory): Player[][] {
-  const orderedMen = [...men].sort(byStrengthDesc);
-  const availableWomen = [...women].sort(byStrengthDesc);
-  const teams: Player[][] = [];
-  const targetStrength = teamStrength([...men, ...women]) / Math.max(1, men.length);
+function sameGenderOpponentPairScore(playerA: Player, playerB: Player, history: TournamentHistory): number {
+  const repeatPenalty = history.sameGenderOpponentPairs[teamPairKey(playerA, playerB)] ?? 0;
+  const strengthDelta = Math.abs(Number(playerA.strength ?? 0) - Number(playerB.strength ?? 0));
 
-  for (const man of orderedMen) {
+  return repeatPenalty * 1000 + strengthDelta;
+}
+
+function createSameGenderOpponentPairs(players: Player[], history: TournamentHistory): Player[][] {
+  const availablePlayers = [...players].sort(byStrengthDesc);
+  const pairs: Player[][] = [];
+
+  while (availablePlayers.length >= 2) {
+    const player = availablePlayers.shift();
+    if (!player) break;
+
     let bestIndex = 0;
     let bestScore = Number.POSITIVE_INFINITY;
 
-    for (let i = 0; i < availableWomen.length; i += 1) {
-      const woman = availableWomen[i];
-      const repeatPenalty = history.teamPairs[teamPairKey(man, woman)] ?? 0;
-      const strengthDelta = Math.abs(
-        Number(man.strength ?? 0) + Number(woman.strength ?? 0) - targetStrength,
-      );
-      const score = repeatPenalty * 100 + strengthDelta;
+    for (let i = 0; i < availablePlayers.length; i += 1) {
+      const score = sameGenderOpponentPairScore(player, availablePlayers[i], history);
 
       if (score < bestScore) {
         bestScore = score;
@@ -47,12 +50,32 @@ function createMixedTeams(men: Player[], women: Player[], history: TournamentHis
       }
     }
 
-    const woman = availableWomen.splice(bestIndex, 1)[0];
-    if (!woman) break;
-    teams.push([man, woman]);
+    const opponent = availablePlayers.splice(bestIndex, 1)[0];
+    if (opponent) pairs.push([player, opponent]);
   }
 
-  return teams;
+  return pairs;
+}
+
+function mixedAssignmentScore(teamA: Player[], teamB: Player[], history: TournamentHistory): number {
+  const teamRepeatPenalty =
+    (history.teamPairs[teamPairKey(teamA[0], teamA[1])] ?? 0) +
+    (history.teamPairs[teamPairKey(teamB[0], teamB[1])] ?? 0);
+  const strengthDelta = Math.abs(teamStrength(teamA) - teamStrength(teamB));
+
+  return teamRepeatPenalty * 100 + strengthDelta;
+}
+
+function createMixedMatchTeams(men: Player[], women: Player[], history: TournamentHistory): Player[][] {
+  const [manA, manB] = men;
+  const [womanA, womanB] = women;
+  const straightTeams = [[manA, womanA], [manB, womanB]];
+  const crossedTeams = [[manA, womanB], [manB, womanA]];
+
+  return mixedAssignmentScore(straightTeams[0], straightTeams[1], history) <=
+    mixedAssignmentScore(crossedTeams[0], crossedTeams[1], history)
+    ? straightTeams
+    : crossedTeams;
 }
 
 function createRound(
@@ -68,16 +91,16 @@ function createRound(
   const activeWomen = women.slice(0, matchCount * 2);
   const activeIds = new Set([...activeMen, ...activeWomen].map((player) => player.id));
   const benched = players.filter((player) => !activeIds.has(player.id));
-  const teams = createMixedTeams(activeMen, activeWomen, history).sort(
-    (teamA, teamB) => teamStrength(teamB) - teamStrength(teamA),
-  );
+  const maleOpponentPairs = createSameGenderOpponentPairs(activeMen, history);
+  const femaleOpponentPairs = createSameGenderOpponentPairs(activeWomen, history);
   const matches: Match[] = [];
 
   for (let i = 0; i < matchCount; i += 1) {
-    const teamA = teams[i * 2];
-    const teamB = teams[i * 2 + 1];
+    const malePair = maleOpponentPairs[i];
+    const femalePair = femaleOpponentPairs[i];
+    if (!malePair || !femalePair) continue;
 
-    if (!teamA || !teamB) continue;
+    const [teamA, teamB] = createMixedMatchTeams(malePair, femalePair, history);
 
     for (const p of [...teamA, ...teamB]) {
       history.played[p.id] = (history.played[p.id] ?? 0) + 1;
@@ -87,6 +110,16 @@ function createRound(
     const teamBKey = teamPairKey(teamB[0], teamB[1]);
     history.teamPairs[teamAKey] = (history.teamPairs[teamAKey] ?? 0) + 1;
     history.teamPairs[teamBKey] = (history.teamPairs[teamBKey] ?? 0) + 1;
+    for (const playerA of teamA) {
+      if (playerA.gender !== "m" && playerA.gender !== "w") continue;
+
+      for (const playerB of teamB) {
+        if (playerA.gender !== playerB.gender) continue;
+
+        const opponentPairKey = teamPairKey(playerA, playerB);
+        history.sameGenderOpponentPairs[opponentPairKey] = (history.sameGenderOpponentPairs[opponentPairKey] ?? 0) + 1;
+      }
+    }
 
     matches.push({
       id: `r${roundNumber}-m${i + 1}-${[...teamA, ...teamB].map((p) => p.id).join("-")}`,
@@ -113,7 +146,7 @@ export function createSchedule(
   matchDuration: number,
   breakDuration: number,
 ): Round[] {
-  const history: TournamentHistory = { played: {}, pause: {}, teamPairs: {} };
+  const history: TournamentHistory = { played: {}, pause: {}, teamPairs: {}, sameGenderOpponentPairs: {} };
   const rounds: Round[] = [];
   const safeCount = Number(roundCount) || 0;
   const blockMinutes = Number(matchDuration) + Number(breakDuration);

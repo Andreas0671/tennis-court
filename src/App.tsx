@@ -20,7 +20,6 @@ import type { SavedTournament } from "@/types";
 
 const DEFAULT_SLUG = "clubabend";
 const DEFAULT_TITLE = "TC Heide 1975";
-const VIEW_REFRESH_MS = 30_000;
 
 type RouteState = { mode: "admin" | "view"; slug: string };
 
@@ -77,7 +76,13 @@ export default function App() {
     replaceState(tournament.state);
     setLastSavedState(JSON.stringify(tournament.state));
     setLastSavedTitle(tournament.title || DEFAULT_TITLE);
-    setActiveRoundId(tournament.state.rounds[0]?.id);
+    setActiveRoundId((currentRoundId) => {
+      if (currentRoundId && tournament.state.rounds.some((round) => round.id === currentRoundId)) {
+        return currentRoundId;
+      }
+
+      return tournament.state.rounds[0]?.id;
+    });
     if (message) setStatus(message);
   }, [replaceState]);
 
@@ -178,14 +183,6 @@ export default function App() {
       mounted = false;
     };
   }, [route.mode, route.slug, loadAdmin, loadPublic, replaceState]);
-
-  useEffect(() => {
-    if (route.mode !== "view") return undefined;
-    const timer = window.setInterval(() => {
-      void loadPublic(route.slug, true);
-    }, VIEW_REFRESH_MS);
-    return () => window.clearInterval(timer);
-  }, [loadPublic, route.mode, route.slug]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -7,7 +7,7 @@ import { createDefaultTournamentState, loadTournamentState, saveTournamentState 
 
 const DEFAULT_STATE = createDefaultTournamentState();
 const DEFAULT_COURTS = DEFAULT_STATE.courtCount;
-const MAX_STRENGTH = 4;
+const MAX_STRENGTH = 5;
 
 const DEMO_NAMES = [
   "Alexander", "Sophie", "Jonas", "Laura", "Ben", "Marie", "Lukas", "Anna",

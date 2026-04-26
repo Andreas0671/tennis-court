@@ -21,6 +21,18 @@ function isMixedTeam(team: Player[]) {
   return genders.has("m") && genders.has("w");
 }
 
+function sameGenderOpponentKeys(rounds: ReturnType<typeof createSchedule>, gender: Gender) {
+  return rounds.flatMap((round) =>
+    round.matches.flatMap((match) =>
+      match.teamA.flatMap((playerA) =>
+        match.teamB
+          .filter((playerB) => playerA.gender === gender && playerB.gender === gender)
+          .map((playerB) => [playerA.id, playerB.id].sort().join("-")),
+      ),
+    ),
+  );
+}
+
 describe("createSchedule", () => {
   it("builds mixed teams when enough women and men are available", () => {
     const teams = getTeams([
@@ -161,5 +173,31 @@ describe("createSchedule", () => {
     );
 
     expect(new Set(teamKeys).size).toBe(teamKeys.length);
+  });
+
+  it("avoids repeated male and female opponents when other matchups are available", () => {
+    const rounds = createSchedule(
+      [
+        makePlayer("m1", "m", 8),
+        makePlayer("m2", "m", 7),
+        makePlayer("m3", "m", 6),
+        makePlayer("m4", "m", 5),
+        makePlayer("w1", "w", 8),
+        makePlayer("w2", "w", 7),
+        makePlayer("w3", "w", 6),
+        makePlayer("w4", "w", 5),
+      ],
+      3,
+      ["Court 1", "Court 2"],
+      "18:00",
+      35,
+      10,
+    );
+
+    const maleOpponentKeys = sameGenderOpponentKeys(rounds, "m");
+    const femaleOpponentKeys = sameGenderOpponentKeys(rounds, "w");
+
+    expect(new Set(maleOpponentKeys).size).toBe(maleOpponentKeys.length);
+    expect(new Set(femaleOpponentKeys).size).toBe(femaleOpponentKeys.length);
   });
 });

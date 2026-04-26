@@ -4,7 +4,7 @@ import type { TournamentFormState } from "@/types";
 export const TOURNAMENT_STORAGE_KEY = "tennis-court:tournament";
 
 const DEFAULT_COURTS = 2;
-const MAX_STRENGTH = 4;
+const MAX_STRENGTH = 5;
 const DEFAULT_TOURNAMENT_NAME = "Clubabend";
 
 function normalizeStrength(value: unknown) {

@@ -43,6 +43,7 @@ export interface TournamentHistory {
   played: Record<string, number>;
   pause: Record<string, number>;
   teamPairs: Record<string, number>;
+  sameGenderOpponentPairs: Record<string, number>;
 }
 
 export interface ParsedResult {

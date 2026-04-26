@@ -74,7 +74,7 @@ export function PlayerSetup(props: PlayerSetupProps) {
               <Textarea
                 value={playerInput}
                 onChange={(e) => props.onPlayerInputChange(e.target.value)}
-                placeholder={"Anna; weiblich; 4\nBen; maennlich; 3\nClara; weiblich; 2\nDavid; maennlich; 1"}
+                placeholder={"Anna; weiblich; 5\nBen; maennlich; 3\nClara; weiblich; 2\nDavid; maennlich; 1"}
                 className="min-h-32 rounded-2xl bg-white"
               />
               <Button variant="secondary" onClick={props.onAddBulk} className="rounded-2xl bg-emerald-100 text-emerald-900 hover:bg-emerald-200">
