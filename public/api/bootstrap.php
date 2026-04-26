@@ -42,7 +42,7 @@ function config(): array
 
     $config = require $path;
     if (!is_array($config)) {
-        json_error('API config.php ist ungueltig.', 500);
+        json_error('API config.php ist ungültig.', 500);
     }
 
     return $config;
@@ -60,7 +60,7 @@ function db(): PDO
     $user = (string) ($db['user'] ?? '');
 
     if ($dsn === '' || $user === '') {
-        json_error('Datenbank-Konfiguration ist unvollstaendig: db.dsn und db.user muessen gesetzt sein.', 500);
+        json_error('Datenbank-Konfiguration ist unvollständig: db.dsn und db.user müssen gesetzt sein.', 500);
     }
 
     try {
@@ -89,7 +89,7 @@ function request_json(): array
     $raw = file_get_contents('php://input') ?: '';
     $data = json_decode($raw, true);
     if (!is_array($data)) {
-        json_error('Ungueltige JSON-Anfrage.', 400);
+        json_error('Ungültige JSON-Anfrage.', 400);
     }
     return $data;
 }
@@ -98,7 +98,7 @@ function slug_from_request(?string $value): string
 {
     $slug = strtolower(trim((string) $value));
     if (!preg_match('/^[a-z0-9-]{1,120}$/', $slug)) {
-        json_error('Ungueltiger Turnier-Slug.', 400);
+        json_error('Ungültiger Turnier-Slug.', 400);
     }
     return $slug;
 }

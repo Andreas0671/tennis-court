@@ -87,7 +87,7 @@ describe("useTournament persistence", () => {
     const { result } = renderHook(() => useTournament());
 
     act(() => {
-      result.current.setPlayerInput("Anna; weiblich; 4\nBen; maennlich; 3\nClara; weiblich; 5");
+      result.current.setPlayerInput("Anna; weiblich; 4\nBen; männlich; 3\nClara; weiblich; 5");
     });
 
     act(() => {

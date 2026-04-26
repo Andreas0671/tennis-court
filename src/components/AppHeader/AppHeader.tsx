@@ -50,7 +50,7 @@ export function AppHeader({
             <LuSparkles className="h-4 w-4" />
             {isAdmin ? `Admin${adminUsername ? `: ${adminUsername}` : ""}` : "Live-Ansicht"}
           </div>
-          <h1 className={`${compact ? "text-2xl sm:text-3xl md:text-4xl" : "text-3xl md:text-4xl"} font-bold`}>Vierer-Kombinationen fuer Tennis-Doppel</h1>
+          <h1 className={`${compact ? "text-2xl sm:text-3xl md:text-4xl" : "text-3xl md:text-4xl"} font-bold`}>Vierer-Kombinationen für Tennis-Doppel</h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-emerald-50 md:text-base">
             {isAdmin
               ? "Plane lockere Doppelrunden mit wechselnden Partnern, Court-Zuweisung, Pausenrotation und Gesamtwertung."

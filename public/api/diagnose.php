@@ -37,7 +37,7 @@ try {
 
     $config = require $foundConfig;
     if (!is_array($config)) {
-        throw new RuntimeException('config.php gibt kein Array zurueck.');
+        throw new RuntimeException('config.php gibt kein Array zurück.');
     }
 
     $result['configValid'] = true;
@@ -52,7 +52,7 @@ try {
     $result['dbConfigured'] = $dsn !== '' && $user !== '';
 
     if (!$result['dbConfigured']) {
-        throw new RuntimeException('db.dsn und db.user muessen gesetzt sein.');
+        throw new RuntimeException('db.dsn und db.user müssen gesetzt sein.');
     }
 
     $pdo = new PDO($dsn, $user, $password, [

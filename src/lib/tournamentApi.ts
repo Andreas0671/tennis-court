@@ -28,9 +28,9 @@ async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
     data = text ? JSON.parse(text) : null;
   } catch {
     if (!response.ok) {
-      throw new ApiError(text || "Serverantwort war kein gueltiges JSON.", response.status);
+      throw new ApiError(text || "Serverantwort war kein gültiges JSON.", response.status);
     }
-    throw new ApiError("Serverantwort war kein gueltiges JSON.", response.status);
+    throw new ApiError("Serverantwort war kein gültiges JSON.", response.status);
   }
 
   if (!response.ok) {

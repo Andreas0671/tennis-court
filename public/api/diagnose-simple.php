@@ -26,7 +26,7 @@ if ($configPath === null) {
 
 $config = require $configPath;
 if (!is_array($config)) {
-    $result['error'] = 'config.php gibt kein Array zurueck.';
+    $result['error'] = 'config.php gibt kein Array zurück.';
     echo json_encode($result);
     exit;
 }
@@ -39,7 +39,7 @@ $password = isset($db['password']) ? (string) $db['password'] : '';
 $result['dbConfigured'] = $dsn !== '' && $user !== '';
 
 if (!$result['dbConfigured']) {
-    $result['error'] = 'db.dsn und db.user muessen gesetzt sein.';
+    $result['error'] = 'db.dsn und db.user müssen gesetzt sein.';
     echo json_encode($result);
     exit;
 }

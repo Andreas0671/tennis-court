@@ -65,8 +65,8 @@ function equalGamesRoundInfo(players: SavedTournament["state"]["players"], court
   const activePlayersPerRound = matchCount * 4;
 
   if (players.length < 4 || matchCount === 0) return "nicht berechenbar";
-  if (other > 0) return "nicht moeglich mit divers/ohne Zuordnung";
-  if (men !== women) return "nicht moeglich bei ungleicher Damen-/Herrenanzahl";
+  if (other > 0) return "nicht möglich mit divers/ohne Zuordnung";
+  if (men !== women) return "nicht möglich bei ungleicher Damen-/Herrenanzahl";
 
   const rounds = players.length / gcd(players.length, activePlayersPerRound);
   const gamesPerPlayer = (rounds * activePlayersPerRound) / players.length;
@@ -146,7 +146,7 @@ export default function App() {
         replaceState(emptyState);
         setLastSavedState(JSON.stringify(emptyState));
         setActiveRoundId(undefined);
-        setStatus("Neues Turnier vorbereitet. Nach dem ersten Speichern ist es fuer Zuschauer sichtbar.");
+        setStatus("Neues Turnier vorbereitet. Nach dem ersten Speichern ist es für Zuschauer sichtbar.");
       } else {
         setError(errorMessage(err));
       }
@@ -294,7 +294,7 @@ export default function App() {
                 {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
                 <div className="flex flex-wrap gap-3">
                   <Button type="submit" disabled={loading} className="rounded-2xl bg-emerald-700 hover:bg-emerald-800">
-                    {loading ? "Prueft..." : "Einloggen"}
+                    {loading ? "Prüft..." : "Einloggen"}
                   </Button>
                   <Button type="button" variant="secondary" onClick={() => navigate({ mode: "view", slug: route.slug })} className="rounded-2xl bg-emerald-100 text-emerald-900 hover:bg-emerald-200">
                     Zur Live-Ansicht
@@ -341,7 +341,7 @@ export default function App() {
               </div>
               <div><strong>Titel:</strong> {canEdit ? <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2 max-w-2xl rounded-2xl bg-white" /> : title}</div>
               <div><strong>Letzte Speicherung:</strong> {formatUpdatedAt(updatedAt)}</div>
-              <div><strong>Runden fuer gleiche Spielanzahl:</strong> {equalRoundInfo}</div>
+              <div><strong>Runden für gleiche Spielanzahl:</strong> {equalRoundInfo}</div>
               {status && <div>{status}</div>}
               {error && <div className="text-rose-700">{error}</div>}
             </div>
@@ -408,7 +408,7 @@ export default function App() {
               <div className="rounded-2xl border border-dashed border-emerald-200 p-10 text-center text-slate-500">Daten werden geladen...</div>
             ) : t.rounds.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-emerald-200 p-10 text-center text-slate-500">
-                {canEdit ? "Noch kein Turnier geplant. Spieler anlegen und dann speichern." : "Noch kein veroeffentlichter Turnierplan vorhanden."}
+                {canEdit ? "Noch kein Turnier geplant. Spieler anlegen und dann speichern." : "Noch kein veröffentlichter Turnierplan vorhanden."}
               </div>
             ) : (
               <Tabs value={currentRoundId} onValueChange={setActiveRoundId} className="space-y-5">

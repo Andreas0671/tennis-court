@@ -43,7 +43,7 @@ export function PlayerSetup(props: PlayerSetupProps) {
         {!readOnly && (
           <>
             <div className="space-y-2">
-              <Label>Einzelnen Spieler hinzufuegen</Label>
+              <Label>Einzelnen Spieler hinzufügen</Label>
               <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
                 <Input
                   value={newPlayer}
@@ -57,7 +57,7 @@ export function PlayerSetup(props: PlayerSetupProps) {
                   onChange={(e) => props.onNewGenderChange(e.target.value as Gender)}
                   className="rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm"
                 >
-                  <option value="m">Maennlich</option>
+                  <option value="m">Männlich</option>
                   <option value="w">Weiblich</option>
                 </select>
                 <div className="rounded-2xl border border-emerald-200 bg-white px-3 py-2">
@@ -74,11 +74,11 @@ export function PlayerSetup(props: PlayerSetupProps) {
               <Textarea
                 value={playerInput}
                 onChange={(e) => props.onPlayerInputChange(e.target.value)}
-                placeholder={"Anna; weiblich; 5\nBen; maennlich; 3\nClara; weiblich; 2\nDavid; maennlich; 1"}
+                placeholder={"Anna; weiblich; 5\nBen; männlich; 3\nClara; weiblich; 2\nDavid; männlich; 1"}
                 className="min-h-32 rounded-2xl bg-white"
               />
               <Button variant="secondary" onClick={props.onAddBulk} className="rounded-2xl bg-emerald-100 text-emerald-900 hover:bg-emerald-200">
-                Namen uebernehmen
+                Namen übernehmen
               </Button>
             </div>
           </>
@@ -87,7 +87,7 @@ export function PlayerSetup(props: PlayerSetupProps) {
         <div className="grid gap-3 md:grid-cols-2">
           <div className="rounded-2xl bg-white p-4 text-sm shadow-sm">
             <div><strong>Spieler:</strong> {players.length}</div>
-            <div className="mt-1 grid gap-1 sm:block"><span><strong>Maennlich:</strong> {stats.men}</span><span className="hidden sm:inline"> | </span><span><strong>Weiblich:</strong> {stats.women}</span></div>
+            <div className="mt-1 grid gap-1 sm:block"><span><strong>Männlich:</strong> {stats.men}</span><span className="hidden sm:inline"> | </span><span><strong>Weiblich:</strong> {stats.women}</span></div>
             <div className="mt-1">{stats.matchesPerRound} Matches pro Runde, {stats.benchedPerRound} Aussetzer.</div>
           </div>
           <div className="rounded-2xl bg-white p-4 text-sm shadow-sm">
