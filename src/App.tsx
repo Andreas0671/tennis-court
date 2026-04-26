@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTournament } from "@/hooks/useTournament";
+import clubLogo from "@/assets/club-logo-transparent.png";
 import { formatUpdatedAt } from "@/lib/dateTime";
 import { createDefaultTournamentState } from "@/lib/tournamentStorage";
 import { ApiError, checkSession, getAdminTournament, getPublicTournament, login, logout, saveTournament } from "@/lib/tournamentApi";
@@ -231,7 +232,13 @@ export default function App() {
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#14532d,_#052e16_55%,_#022c22)] p-6 text-slate-900">
         <div className="mx-auto max-w-3xl">
           <Card className="overflow-hidden rounded-[2rem] border-0 bg-white shadow-2xl">
-            <div className="bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 p-8 text-white">
+            <div className="relative bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 p-8 text-white">
+              <img
+                src={clubLogo}
+                alt="TC Heide 1975 e.V. Vereinslogo"
+                className="absolute right-4 top-4 h-20 w-20 object-contain drop-shadow-lg sm:right-6 sm:top-6 sm:h-24 sm:w-24"
+              />
+              <div className="pr-24 sm:pr-28">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em]">
                 <LuLogIn className="h-4 w-4" />
                 Admin-Login
@@ -240,6 +247,7 @@ export default function App() {
               <p className="mt-3 max-w-2xl text-sm text-emerald-50 md:text-base">
                 Nur der Admin kann Spieler, Runden und Ergebnisse bearbeiten. Zuschauer bleiben auf der Live-Ansicht.
               </p>
+              </div>
             </div>
             <CardContent className="space-y-6 p-6">
               <form className="space-y-4" onSubmit={handleLogin}>

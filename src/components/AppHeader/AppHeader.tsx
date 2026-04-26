@@ -1,4 +1,5 @@
 import { LuLogOut, LuRefreshCw, LuRotateCcw, LuSave, LuShuffle, LuSparkles } from "react-icons/lu";
+import clubLogo from "@/assets/club-logo-transparent.png";
 import { Button } from "@/components/ui/button";
 
 interface AppHeaderProps {
@@ -37,9 +38,14 @@ export function AppHeader({
   const isAdmin = mode === "admin";
 
   return (
-    <div className={`bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 text-white ${compact ? "p-4 sm:p-6 md:p-8" : "p-8"}`}>
+    <div className={`relative bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 text-white ${compact ? "p-4 sm:p-6 md:p-8" : "p-8"}`}>
+      <img
+        src={clubLogo}
+        alt="TC Heide 1975 e.V. Vereinslogo"
+        className={`absolute right-4 top-4 object-contain drop-shadow-lg sm:right-6 sm:top-6 ${compact ? "h-16 w-16 sm:h-20 sm:w-20" : "h-20 w-20 sm:h-24 sm:w-24"}`}
+      />
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+        <div className={compact ? "pr-20 sm:pr-24 lg:pr-28" : "pr-24 sm:pr-28 lg:pr-32"}>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] sm:px-4 sm:tracking-[0.2em]">
             <LuSparkles className="h-4 w-4" />
             {isAdmin ? `Admin${adminUsername ? `: ${adminUsername}` : ""}` : "Live-Ansicht"}
