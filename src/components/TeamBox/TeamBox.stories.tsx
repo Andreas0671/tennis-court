@@ -13,7 +13,7 @@ export const Default: Story = {
   args: {
     label: "Team A",
     team: [
-      { id: "1", name: "Sophie", gender: "w", strength: 5 },
+      { id: "1", name: "Sophie", gender: "w", strength: 4 },
       { id: "2", name: "Jonas", gender: "m", strength: 2 },
     ],
   },

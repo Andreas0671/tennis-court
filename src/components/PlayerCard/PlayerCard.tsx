@@ -7,9 +7,10 @@ import type { Player } from "@/types";
 interface PlayerCardProps {
   player: Player;
   onRemove?: (id: string) => void;
+  showStrength?: boolean;
 }
 
-export function PlayerCard({ player, onRemove }: PlayerCardProps) {
+export function PlayerCard({ player, onRemove, showStrength = true }: PlayerCardProps) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm">
       <div>
@@ -18,7 +19,7 @@ export function PlayerCard({ player, onRemove }: PlayerCardProps) {
           <Badge variant="secondary" className="rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
             {genderLabel(player.gender)}
           </Badge>
-          <StarRating value={player.strength} />
+          {showStrength && <StarRating value={player.strength} />}
         </div>
       </div>
       {onRemove && (

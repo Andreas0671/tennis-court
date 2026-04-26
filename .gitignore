@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.tools/
+
+# Local deployment secrets
+public/api/config.php

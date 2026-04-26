@@ -83,6 +83,24 @@ describe("useTournament persistence", () => {
     expect(persisted.roundCount).toBe(5);
   });
 
+  it("adds bulk players with gender and 4-star strength values", () => {
+    const { result } = renderHook(() => useTournament());
+
+    act(() => {
+      result.current.setPlayerInput("Anna; weiblich; 4\nBen; maennlich; 3\nClara; weiblich; 5");
+    });
+
+    act(() => {
+      result.current.addBulkPlayers();
+    });
+
+    expect(result.current.players).toEqual([
+      expect.objectContaining({ name: "Anna", gender: "w", strength: 4 }),
+      expect.objectContaining({ name: "Ben", gender: "m", strength: 3 }),
+      expect.objectContaining({ name: "Clara", gender: "w", strength: 4 }),
+    ]);
+  });
+
   it("writes the cleared default state back to local storage", () => {
     localStorage.setItem(
       TOURNAMENT_STORAGE_KEY,
