@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSchedule } from "./tournament";
+import { createSchedule, replaceDroppedPlayerFromRound } from "./tournament";
 import type { Gender, Player } from "@/types";
 
 function makePlayer(id: string, gender: Gender, strength: number): Player {
@@ -199,5 +199,54 @@ describe("createSchedule", () => {
 
     expect(new Set(maleOpponentKeys).size).toBe(maleOpponentKeys.length);
     expect(new Set(femaleOpponentKeys).size).toBe(femaleOpponentKeys.length);
+  });
+
+  it("replaces a dropped player with the closest matching benched player in future rounds", () => {
+    const dropped = makePlayer("m1", "m", 5);
+    const weakerReplacement = makePlayer("m3", "m", 2);
+    const bestReplacement = makePlayer("m4", "m", 4);
+    const rounds = [
+      {
+        id: "round-1",
+        roundNumber: 1,
+        startTime: "18:00",
+        endTime: "18:35",
+        breakUntil: "18:45",
+        matches: [{
+          id: "match-1",
+          courtName: "Court 1",
+          teamA: [dropped, makePlayer("w1", "w", 5)],
+          teamB: [makePlayer("m2", "m", 5), makePlayer("w2", "w", 4)],
+          result: "",
+          notes: "",
+        }],
+        benched: [weakerReplacement, bestReplacement, makePlayer("w3", "w", 3)],
+      },
+      {
+        id: "round-2",
+        roundNumber: 2,
+        startTime: "18:45",
+        endTime: "19:20",
+        breakUntil: null,
+        matches: [{
+          id: "match-2",
+          courtName: "Court 1",
+          teamA: [makePlayer("m2", "m", 5), makePlayer("w1", "w", 5)],
+          teamB: [dropped, makePlayer("w2", "w", 4)],
+          result: "",
+          notes: "",
+        }],
+        benched: [bestReplacement],
+      },
+    ];
+
+    const result = replaceDroppedPlayerFromRound(rounds, dropped.id, "round-1");
+
+    expect(result.summary).toMatchObject({ droppedPlayer: dropped, replacedRounds: 2, removedBenchRounds: 0, unresolvedRounds: [] });
+    expect(result.rounds[0].matches[0].teamA[0]).toBe(bestReplacement);
+    expect(result.rounds[1].matches[0].teamB[0]).toBe(bestReplacement);
+    expect(result.rounds[0].benched).not.toContain(bestReplacement);
+    expect(result.rounds[0].absent).toEqual([dropped]);
+    expect(result.rounds[1].absent).toEqual([dropped]);
   });
 });

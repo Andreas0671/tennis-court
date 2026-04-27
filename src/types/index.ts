@@ -24,6 +24,7 @@ export interface Round {
   breakUntil: string | null;
   matches: Match[];
   benched: Player[];
+  absent?: Player[];
 }
 
 export interface PlayerStats extends Player {
@@ -44,6 +45,13 @@ export interface TournamentHistory {
   pause: Record<string, number>;
   teamPairs: Record<string, number>;
   sameGenderOpponentPairs: Record<string, number>;
+}
+
+export interface DropoutReplacementSummary {
+  droppedPlayer: Player | null;
+  replacedRounds: number;
+  removedBenchRounds: number;
+  unresolvedRounds: number[];
 }
 
 export interface ParsedResult {

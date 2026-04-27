@@ -1,4 +1,4 @@
-import type { Match, Player, Round, TournamentHistory } from "@/types";
+import type { DropoutReplacementSummary, Match, Player, Round, TournamentHistory } from "@/types";
 import { addMinutesToTime } from "@/lib/utils";
 
 function byStrengthDesc(a: Player, b: Player): number {
@@ -7,6 +7,24 @@ function byStrengthDesc(a: Player, b: Player): number {
 
 function teamStrength(team: Player[]): number {
   return team.reduce((total, player) => total + Number(player.strength ?? 0), 0);
+}
+
+function byReplacementFit(droppedPlayer: Player) {
+  return (a: Player, b: Player): number => {
+    const strengthDelta = Math.abs(Number(a.strength ?? 0) - Number(droppedPlayer.strength ?? 0)) -
+      Math.abs(Number(b.strength ?? 0) - Number(droppedPlayer.strength ?? 0));
+    if (strengthDelta !== 0) return strengthDelta;
+    return a.name.localeCompare(b.name);
+  };
+}
+
+function uniquePlayers(players: Player[]): Player[] {
+  const seen = new Set<string>();
+  return players.filter((player) => {
+    if (seen.has(player.id)) return false;
+    seen.add(player.id);
+    return true;
+  });
 }
 
 function byPlayPriority(history: TournamentHistory) {
@@ -169,4 +187,88 @@ export function createSchedule(
   }
 
   return rounds;
+}
+
+function findPlayerInRounds(rounds: Round[], playerId: string): Player | null {
+  for (const round of rounds) {
+    const players = [
+      ...round.benched,
+      ...(round.absent ?? []),
+      ...round.matches.flatMap((match) => [...match.teamA, ...match.teamB]),
+    ];
+    const player = players.find((candidate) => candidate.id === playerId);
+    if (player) return player;
+  }
+
+  return null;
+}
+
+function replacePlayerInMatch(match: Match, droppedPlayerId: string, replacement: Player): Match {
+  return {
+    ...match,
+    teamA: match.teamA.map((player) => player.id === droppedPlayerId ? replacement : player),
+    teamB: match.teamB.map((player) => player.id === droppedPlayerId ? replacement : player),
+  };
+}
+
+export function replaceDroppedPlayerFromRound(
+  rounds: Round[],
+  droppedPlayerId: string,
+  startRoundId: string,
+): { rounds: Round[]; summary: DropoutReplacementSummary } {
+  const droppedPlayer = findPlayerInRounds(rounds, droppedPlayerId);
+  const startRound = rounds.find((round) => round.id === startRoundId);
+  const summary: DropoutReplacementSummary = {
+    droppedPlayer,
+    replacedRounds: 0,
+    removedBenchRounds: 0,
+    unresolvedRounds: [],
+  };
+
+  if (!droppedPlayer || !startRound) {
+    return { rounds, summary };
+  }
+
+  const nextRounds = rounds.map((round) => {
+    if (round.roundNumber < startRound.roundNumber) return round;
+
+    const isBenched = round.benched.some((player) => player.id === droppedPlayerId);
+    const matchWithDroppedPlayer = round.matches.find((match) =>
+      [...match.teamA, ...match.teamB].some((player) => player.id === droppedPlayerId),
+    );
+
+    if (!isBenched && !matchWithDroppedPlayer) return round;
+
+    const absent = uniquePlayers([...(round.absent ?? []), droppedPlayer]);
+
+    if (isBenched && !matchWithDroppedPlayer) {
+      summary.removedBenchRounds += 1;
+      return {
+        ...round,
+        benched: round.benched.filter((player) => player.id !== droppedPlayerId),
+        absent,
+      };
+    }
+
+    const replacement = round.benched
+      .filter((player) => player.id !== droppedPlayerId && player.gender === droppedPlayer.gender)
+      .sort(byReplacementFit(droppedPlayer))[0];
+
+    if (!replacement) {
+      summary.unresolvedRounds.push(round.roundNumber);
+      return { ...round, absent };
+    }
+
+    summary.replacedRounds += 1;
+    return {
+      ...round,
+      matches: round.matches.map((match) =>
+        match.id === matchWithDroppedPlayer?.id ? replacePlayerInMatch(match, droppedPlayerId, replacement) : match,
+      ),
+      benched: round.benched.filter((player) => player.id !== replacement.id && player.id !== droppedPlayerId),
+      absent,
+    };
+  });
+
+  return { rounds: nextRounds, summary };
 }

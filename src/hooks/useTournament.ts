@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Player, Round, TournamentFormState } from "@/types";
+import type { DropoutReplacementSummary, Player, Round, TournamentFormState } from "@/types";
 import { safeRandomId, buildDefaultCourtNames, addMinutesToTime } from "@/lib/utils";
-import { createSchedule } from "@/lib/tournament";
+import { createSchedule, replaceDroppedPlayerFromRound } from "@/lib/tournament";
 import { computeLeaderboard } from "@/lib/leaderboard";
 import { createDefaultTournamentState, loadTournamentState, saveTournamentState } from "@/lib/tournamentStorage";
 
@@ -175,6 +175,12 @@ export function useTournament() {
     ));
   }
 
+  function replaceDroppedPlayer(roundId: string, playerId: string): DropoutReplacementSummary {
+    const result = replaceDroppedPlayerFromRound(rounds, playerId, roundId);
+    setRounds(result.rounds);
+    return result.summary;
+  }
+
   const replaceState = useCallback((nextState: TournamentFormState) => {
     const fallback = createDefaultTournamentState();
     setTournamentName(typeof nextState.tournamentName === "string" ? nextState.tournamentName : fallback.tournamentName);
@@ -216,6 +222,6 @@ export function useTournament() {
     setStartTime, setMatchDuration, setBreakDuration,
     addSinglePlayer, addBulkPlayers, removePlayer,
     updateCourtCount, updateCourtName, generateDemo, generateTournament,
-    resetResults, clearAll, updateMatchField, replaceState,
+    resetResults, clearAll, updateMatchField, replaceDroppedPlayer, replaceState,
   };
 }

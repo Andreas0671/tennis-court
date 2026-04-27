@@ -252,6 +252,25 @@ export default function App() {
     }
   }
 
+  function handlePlayerDropout(roundId: string, playerId: string) {
+    const summary = t.replaceDroppedPlayer(roundId, playerId);
+    const playerName = summary.droppedPlayer?.name ?? "Spieler";
+    const parts = [
+      `${playerName} ab dieser Runde als Ausfall markiert.`,
+      `${summary.replacedRounds} ${summary.replacedRounds === 1 ? "Einsatz" : "Einsaetze"} ersetzt.`,
+    ];
+
+    if (summary.removedBenchRounds > 0) {
+      parts.push(`${summary.removedBenchRounds} Pausenlisten bereinigt.`);
+    }
+
+    if (summary.unresolvedRounds.length > 0) {
+      parts.push(`Ohne passenden Aussetzer in Runde ${summary.unresolvedRounds.join(", ")}.`);
+    }
+
+    setStatus(parts.join(" "));
+  }
+
   const currentRoundId = useMemo(() => {
     if (activeRoundId && t.rounds.some((round) => round.id === activeRoundId)) return activeRoundId;
     return t.rounds[0]?.id;
@@ -421,7 +440,12 @@ export default function App() {
                 </TabsList>
                 {t.rounds.map((round) => (
                   <TabsContent key={round.id} value={round.id} className="space-y-5">
-                    <RoundPanel round={round} readOnly={!canEdit} onFieldChange={canEdit ? t.updateMatchField : noop} />
+                    <RoundPanel
+                      round={round}
+                      readOnly={!canEdit}
+                      onFieldChange={canEdit ? t.updateMatchField : noop}
+                      onPlayerDropout={canEdit ? handlePlayerDropout : undefined}
+                    />
                   </TabsContent>
                 ))}
               </Tabs>
