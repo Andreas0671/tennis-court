@@ -26,7 +26,6 @@ export function createDefaultTournamentState(): TournamentFormState {
     startTime: "18:00",
     matchDuration: 35,
     breakDuration: 10,
-    displayRotationSeconds: 10,
   };
 }
 
@@ -58,7 +57,6 @@ export function loadTournamentState(): TournamentFormState {
       startTime: typeof parsed.startTime === "string" ? parsed.startTime : fallback.startTime,
       matchDuration: typeof parsed.matchDuration === "number" ? parsed.matchDuration : fallback.matchDuration,
       breakDuration: typeof parsed.breakDuration === "number" ? parsed.breakDuration : fallback.breakDuration,
-      displayRotationSeconds: typeof parsed.displayRotationSeconds === "number" ? parsed.displayRotationSeconds : fallback.displayRotationSeconds,
     };
   } catch {
     return fallback;

@@ -76,7 +76,6 @@ export interface TournamentFormState {
   startTime: string;
   matchDuration: number;
   breakDuration: number;
-  displayRotationSeconds: number;
 }
 
 export interface SavedTournament {

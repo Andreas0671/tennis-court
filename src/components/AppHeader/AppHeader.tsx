@@ -1,9 +1,9 @@
-import { LuLogOut, LuPause, LuPlay, LuRefreshCw, LuRotateCcw, LuSave, LuShuffle, LuSparkles } from "react-icons/lu";
+import { LuLogOut, LuRefreshCw, LuRotateCcw, LuSave, LuShuffle, LuSparkles } from "react-icons/lu";
 import clubLogo from "@/assets/club-logo-transparent.png";
 import { Button } from "@/components/ui/button";
 
 interface AppHeaderProps {
-  mode?: "admin" | "view" | "display";
+  mode?: "admin" | "view";
   compact?: boolean;
   adminUsername?: string | null;
   isDirty?: boolean;
@@ -16,11 +16,7 @@ interface AppHeaderProps {
   onClearAll: () => void;
   onRefresh?: () => void;
   onOpenAdmin?: () => void;
-  onOpenDisplay?: () => void;
   onLogout?: () => void;
-  isAutoRotateEnabled?: boolean;
-  displayRotationSeconds?: number;
-  onToggleAutoRotate?: () => void;
 }
 
 export function AppHeader({
@@ -37,14 +33,9 @@ export function AppHeader({
   onClearAll,
   onRefresh,
   onOpenAdmin,
-  onOpenDisplay,
   onLogout,
-  isAutoRotateEnabled = false,
-  displayRotationSeconds,
-  onToggleAutoRotate,
 }: AppHeaderProps) {
   const isAdmin = mode === "admin";
-  const isDisplay = mode === "display";
 
   return (
     <div className={`relative bg-gradient-to-r from-emerald-800 via-emerald-600 to-lime-500 text-white ${compact ? "p-4 sm:p-6 md:p-8" : "p-8"}`}>
@@ -57,14 +48,12 @@ export function AppHeader({
         <div className={compact ? "pr-20 sm:pr-24 lg:pr-28" : "pr-24 sm:pr-28 lg:pr-32"}>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] sm:px-4 sm:tracking-[0.2em]">
             <LuSparkles className="h-4 w-4" />
-            {isAdmin ? `Admin${adminUsername ? `: ${adminUsername}` : ""}` : isDisplay ? "Display-Ansicht" : "Live-Ansicht"}
+            {isAdmin ? `Admin${adminUsername ? `: ${adminUsername}` : ""}` : "Live-Ansicht"}
           </div>
           <h1 className={`${compact ? "text-2xl sm:text-3xl md:text-4xl" : "text-3xl md:text-4xl"} font-bold`}>Vierer-Kombinationen für Tennis-Doppel</h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-emerald-50 md:text-base">
             {isAdmin
               ? "Plane lockere Doppelrunden mit wechselnden Partnern, Court-Zuweisung, Pausenrotation und Gesamtwertung."
-              : isDisplay
-                ? "Display-Ansicht für Rundenplan und Gesamtwertung."
               : "Live-Rundenplan mit Ergebnissen, Aussetzern und Gesamtwertung."}
           </p>
         </div>
@@ -79,11 +68,6 @@ export function AppHeader({
                 <LuShuffle className="mr-2 h-4 w-4" />
                 Turnier planen
               </Button>
-              {onOpenDisplay && (
-                <Button variant="secondary" onClick={onOpenDisplay} className="rounded-2xl bg-emerald-950/20 text-white hover:bg-emerald-950/30">
-                  Display
-                </Button>
-              )}
               <Button variant="secondary" onClick={onDemo} className="rounded-2xl bg-emerald-950/20 text-white hover:bg-emerald-950/30">
                 Demo 20 Spieler
               </Button>
@@ -103,12 +87,6 @@ export function AppHeader({
             </>
           ) : (
             <>
-              {isDisplay && onToggleAutoRotate && (
-                <Button onClick={onToggleAutoRotate} className="w-full rounded-2xl bg-white text-emerald-800 hover:bg-emerald-50 sm:w-auto">
-                  {isAutoRotateEnabled ? <LuPause className="mr-2 h-4 w-4" /> : <LuPlay className="mr-2 h-4 w-4" />}
-                  {isAutoRotateEnabled ? "Auto-Wechsel aus" : `Auto-Wechsel ${displayRotationSeconds ?? ""}s`}
-                </Button>
-              )}
               {onRefresh && (
                 <Button onClick={onRefresh} className="w-full rounded-2xl bg-white text-emerald-800 hover:bg-emerald-50 sm:w-auto">
                   <LuRefreshCw className="mr-2 h-4 w-4" />
