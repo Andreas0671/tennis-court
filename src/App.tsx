@@ -22,16 +22,18 @@ import type { SavedTournament } from "@/types";
 const DEFAULT_SLUG = "clubabend";
 const DEFAULT_TITLE = "TC Heide 1975";
 
-type RouteState = { mode: "admin" | "view"; slug: string };
+type RouteState = { mode: "admin" | "view" | "display"; slug: string };
 
 function parseRoute(pathname: string, hash: string): RouteState {
   const segments = pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
   if (segments[0] === "admin") return { mode: "admin", slug: segments[1] ?? DEFAULT_SLUG };
   if (segments[0] === "view") return { mode: "view", slug: segments[1] ?? DEFAULT_SLUG };
+  if (segments[0] === "display") return { mode: "display", slug: segments[1] ?? DEFAULT_SLUG };
 
   const hashSegments = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (hashSegments[0] === "admin") return { mode: "admin", slug: hashSegments[1] ?? DEFAULT_SLUG };
   if (hashSegments[0] === "view") return { mode: "view", slug: hashSegments[1] ?? DEFAULT_SLUG };
+  if (hashSegments[0] === "display") return { mode: "display", slug: hashSegments[1] ?? DEFAULT_SLUG };
 
   return { mode: "view", slug: DEFAULT_SLUG };
 }
@@ -93,9 +95,12 @@ export default function App() {
   const [lastSavedState, setLastSavedState] = useState(() => JSON.stringify(createDefaultTournamentState()));
   const [lastSavedTitle, setLastSavedTitle] = useState(DEFAULT_TITLE);
   const [activeRoundId, setActiveRoundId] = useState<string | undefined>(undefined);
+  const [displayPage, setDisplayPage] = useState<"rounds" | "leaderboard">("rounds");
+  const [autoRotateDisplay, setAutoRotateDisplay] = useState(false);
 
   const isAdminRoute = route.mode === "admin";
   const canEdit = isAdminRoute && !!adminUser;
+  const isDisplayRoute = route.mode === "display";
   const isDirty = canEdit && !loading && (
     JSON.stringify(t.state) !== lastSavedState ||
     title !== lastSavedTitle
@@ -177,7 +182,7 @@ export default function App() {
       setStatus(null);
       setError(null);
 
-      if (route.mode === "view") {
+      if (route.mode === "view" || route.mode === "display") {
         setReady(true);
         setAdminUser(null);
         await loadPublic(route.slug);
@@ -277,6 +282,31 @@ export default function App() {
   }, [activeRoundId, t.rounds]);
 
   const equalRoundInfo = useMemo(() => equalGamesRoundInfo(t.players, t.courtCount), [t.players, t.courtCount]);
+  const displayRotationSeconds = Math.max(1, Math.min(300, Number(t.displayRotationSeconds) || 10));
+
+  useEffect(() => {
+    if (!isDisplayRoute || !autoRotateDisplay || t.rounds.length === 0) return;
+
+    const timer = window.setInterval(() => {
+      setDisplayPage((page) => {
+        if (page === "leaderboard") {
+          setActiveRoundId(t.rounds[0]?.id);
+          return "rounds";
+        }
+
+        const activeIndex = t.rounds.findIndex((round) => round.id === currentRoundId);
+        const nextRound = t.rounds[activeIndex + 1];
+        if (nextRound) {
+          setActiveRoundId(nextRound.id);
+          return "rounds";
+        }
+
+        return "leaderboard";
+      });
+    }, displayRotationSeconds * 1000);
+
+    return () => window.clearInterval(timer);
+  }, [autoRotateDisplay, currentRoundId, displayRotationSeconds, isDisplayRoute, t.rounds]);
 
   if (isAdminRoute && ready && !adminUser) {
     return (
@@ -335,7 +365,7 @@ export default function App() {
       <div className={`mx-auto max-w-7xl ${canEdit ? "space-y-6" : "space-y-3 sm:space-y-5 md:space-y-6"}`}>
         <section className={`overflow-hidden bg-white shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
           <AppHeader
-            mode={canEdit ? "admin" : "view"}
+            mode={canEdit ? "admin" : isDisplayRoute ? "display" : "view"}
             compact={!canEdit}
             adminUsername={adminUser}
             isDirty={isDirty}
@@ -348,7 +378,14 @@ export default function App() {
             onClearAll={t.clearAll}
             onRefresh={() => void loadPublic(route.slug)}
             onOpenAdmin={() => navigate({ mode: "admin", slug: route.slug })}
+            onOpenDisplay={canEdit ? () => navigate({ mode: "display", slug: route.slug }) : undefined}
             onLogout={() => void handleLogout()}
+            isAutoRotateEnabled={autoRotateDisplay}
+            displayRotationSeconds={displayRotationSeconds}
+            onToggleAutoRotate={isDisplayRoute ? () => {
+              setAutoRotateDisplay((enabled) => !enabled);
+              setDisplayPage("rounds");
+            } : undefined}
           />
           <div className={`grid gap-4 border-b border-emerald-100 bg-emerald-50/70 text-sm text-emerald-950 md:grid-cols-[1fr_auto] ${canEdit ? "px-6 py-4" : "px-4 py-3 sm:px-6 sm:py-4"}`}>
             <div className="space-y-1">
@@ -361,6 +398,20 @@ export default function App() {
               <div><strong>Titel:</strong> {canEdit ? <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2 max-w-2xl rounded-2xl bg-white" /> : title}</div>
               <div><strong>Letzte Speicherung:</strong> {formatUpdatedAt(updatedAt)}</div>
               <div><strong>Runden für gleiche Spielanzahl:</strong> {equalRoundInfo}</div>
+              {canEdit && (
+                <div className="max-w-xs">
+                  <Label htmlFor="display-rotation-seconds" className="mb-2 block font-bold">Display-Wechsel in Sekunden</Label>
+                  <Input
+                    id="display-rotation-seconds"
+                    type="number"
+                    min={1}
+                    max={300}
+                    value={t.displayRotationSeconds}
+                    onChange={(e) => t.setDisplayRotationSeconds(Number(e.target.value))}
+                    className="rounded-2xl bg-white"
+                  />
+                </div>
+              )}
               {status && <div>{status}</div>}
               {error && <div className="text-rose-700">{error}</div>}
             </div>
@@ -368,6 +419,11 @@ export default function App() {
               <Button variant="secondary" onClick={() => navigate({ mode: "view", slug: route.slug })} className="rounded-2xl bg-white text-emerald-900 hover:bg-emerald-100">
                 Zuschaueransicht
               </Button>
+              {canEdit && (
+                <Button variant="secondary" onClick={() => navigate({ mode: "display", slug: route.slug })} className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800">
+                  Display
+                </Button>
+              )}
               {!canEdit && (
                 <Button variant="secondary" onClick={() => navigate({ mode: "admin", slug: route.slug })} className="rounded-2xl bg-emerald-700 text-white hover:bg-emerald-800">
                   Admin-Modus
@@ -375,7 +431,7 @@ export default function App() {
               )}
             </div>
           </div>
-          <div className={`grid gap-4 lg:grid-cols-2 ${canEdit ? "p-6" : "p-3 sm:p-5 md:p-6"}`}>
+          {!isDisplayRoute && <div className={`grid gap-4 lg:grid-cols-2 ${canEdit ? "p-6" : "p-3 sm:p-5 md:p-6"}`}>
             <PlayerSetup
               players={t.players}
               playerInput={t.playerInput}
@@ -410,12 +466,12 @@ export default function App() {
               onMatchDurationChange={(v) => t.setMatchDuration(Number(v))}
               onBreakDurationChange={(v) => t.setBreakDuration(Number(v))}
             />
-          </div>
+          </div>}
         </section>
 
         {t.winner && <WinnerBanner winner={t.winner} />}
 
-        <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
+        {(!isDisplayRoute || displayPage === "rounds") && <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
           <CardHeader className={canEdit ? undefined : "px-4 py-4 sm:px-6"}>
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuCalendarRange className="h-5 w-5" />
@@ -430,7 +486,10 @@ export default function App() {
                 {canEdit ? "Noch kein Turnier geplant. Spieler anlegen und dann speichern." : "Noch kein veröffentlichter Turnierplan vorhanden."}
               </div>
             ) : (
-              <Tabs value={currentRoundId} onValueChange={setActiveRoundId} className="space-y-5">
+              <Tabs value={currentRoundId} onValueChange={(value) => {
+                if (isDisplayRoute) setDisplayPage("rounds");
+                setActiveRoundId(value);
+              }} className="space-y-5">
                 <TabsList className="h-auto w-full flex-wrap justify-start rounded-2xl bg-emerald-50 p-2">
                   {t.rounds.map((round) => (
                     <TabsTrigger key={round.id} value={round.id} className="rounded-2xl data-[state=active]:bg-emerald-700 data-[state=active]:text-white">
@@ -451,9 +510,9 @@ export default function App() {
               </Tabs>
             )}
           </CardContent>
-        </Card>
+        </Card>}
 
-        <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
+        {(!isDisplayRoute || displayPage === "leaderboard") && <Card className={`border-0 bg-white/95 shadow-2xl ${canEdit ? "rounded-[2rem]" : "rounded-2xl sm:rounded-[2rem]"}`}>
           <CardHeader className={canEdit ? undefined : "px-4 py-4 sm:px-6"}>
             <CardTitle className="flex items-center gap-2 text-emerald-900">
               <LuTrophy className="h-5 w-5" />
@@ -463,7 +522,7 @@ export default function App() {
           <CardContent className={canEdit ? undefined : "px-3 pb-4 sm:px-6 sm:pb-6"}>
             <LeaderboardTable leaderboard={t.leaderboard} showStrength={canEdit} />
           </CardContent>
-        </Card>
+        </Card>}
       </div>
     </div>
   );

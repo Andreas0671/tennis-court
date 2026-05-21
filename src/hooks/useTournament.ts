@@ -67,6 +67,7 @@ export function useTournament() {
   const [startTime, setStartTime] = useState(initialState.startTime);
   const [matchDuration, setMatchDuration] = useState(initialState.matchDuration);
   const [breakDuration, setBreakDuration] = useState(initialState.breakDuration);
+  const [displayRotationSeconds, setDisplayRotationSeconds] = useState(initialState.displayRotationSeconds);
 
   useEffect(() => {
     saveTournamentState({
@@ -83,8 +84,9 @@ export function useTournament() {
       startTime,
       matchDuration,
       breakDuration,
+      displayRotationSeconds,
     });
-  }, [tournamentName, players, rounds, playerInput, newPlayer, newGender, newStrength, roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration]);
+  }, [tournamentName, players, rounds, playerInput, newPlayer, newGender, newStrength, roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration, displayRotationSeconds]);
 
   const leaderboard = useMemo(() => computeLeaderboard(players, rounds), [players, rounds]);
   const winner = leaderboard.find((e) => e.points > 0) ?? null;
@@ -167,6 +169,7 @@ export function useTournament() {
     setNewStrength(DEFAULT_STATE.newStrength); setRoundCount(DEFAULT_STATE.roundCount); setCourtCount(DEFAULT_STATE.courtCount);
     setCourtNames(buildDefaultCourtNames(DEFAULT_COURTS)); setStartTime(DEFAULT_STATE.startTime);
     setMatchDuration(DEFAULT_STATE.matchDuration); setBreakDuration(DEFAULT_STATE.breakDuration);
+    setDisplayRotationSeconds(DEFAULT_STATE.displayRotationSeconds);
   }
 
   function updateMatchField(roundId: string, matchId: string, field: "result" | "notes", value: string) {
@@ -196,6 +199,7 @@ export function useTournament() {
     setStartTime(typeof nextState.startTime === "string" ? nextState.startTime : fallback.startTime);
     setMatchDuration(typeof nextState.matchDuration === "number" ? nextState.matchDuration : fallback.matchDuration);
     setBreakDuration(typeof nextState.breakDuration === "number" ? nextState.breakDuration : fallback.breakDuration);
+    setDisplayRotationSeconds(typeof nextState.displayRotationSeconds === "number" ? nextState.displayRotationSeconds : fallback.displayRotationSeconds);
   }, []);
 
   const state: TournamentFormState = {
@@ -212,14 +216,15 @@ export function useTournament() {
     startTime,
     matchDuration,
     breakDuration,
+    displayRotationSeconds,
   };
 
   return {
     tournamentName, players, rounds, playerInput, newPlayer, newGender, newStrength,
-    roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration,
+    roundCount, courtCount, courtNames, startTime, matchDuration, breakDuration, displayRotationSeconds,
     state, leaderboard, winner, totalEventEnd, playerStats,
     setTournamentName, setPlayerInput, setNewPlayer, setNewGender, setNewStrength, setRoundCount,
-    setStartTime, setMatchDuration, setBreakDuration,
+    setStartTime, setMatchDuration, setBreakDuration, setDisplayRotationSeconds,
     addSinglePlayer, addBulkPlayers, removePlayer,
     updateCourtCount, updateCourtName, generateDemo, generateTournament,
     resetResults, clearAll, updateMatchField, replaceDroppedPlayer, replaceState,
