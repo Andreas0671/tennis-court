@@ -4,9 +4,10 @@ import type { PlayerStats } from "@/types";
 
 interface LeaderboardTableProps {
   leaderboard: PlayerStats[];
+  showStrength?: boolean;
 }
 
-export function LeaderboardTable({ leaderboard }: LeaderboardTableProps) {
+export function LeaderboardTable({ leaderboard, showStrength = true }: LeaderboardTableProps) {
   if (leaderboard.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-emerald-200 p-8 text-center text-slate-500">
@@ -15,12 +16,14 @@ export function LeaderboardTable({ leaderboard }: LeaderboardTableProps) {
     );
   }
 
+  const headers = ["#", "Spieler", ...(showStrength ? ["Stärke"] : []), "Punkte", "S/U/N", "Sätze", "Games", "Gespielt", "Pause"];
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-emerald-100">
       <table className="w-full min-w-[850px] text-left text-sm">
         <thead className="bg-emerald-50 text-emerald-900">
           <tr>
-            {["#", "Spieler", "Stärke", "Punkte", "S/U/N", "Sätze", "Games", "Gespielt", "Pause"].map((h) => (
+            {headers.map((h) => (
               <th key={h} className="px-4 py-3">{h}</th>
             ))}
           </tr>
@@ -36,7 +39,7 @@ export function LeaderboardTable({ leaderboard }: LeaderboardTableProps) {
                   <div className="font-medium text-slate-900">{entry.name}</div>
                   <div className="text-xs text-slate-500">{genderLabel(entry.gender)}</div>
                 </td>
-                <td className="px-4 py-3"><StarRating value={entry.strength} /></td>
+                {showStrength && <td className="px-4 py-3"><StarRating value={entry.strength} /></td>}
                 <td className="px-4 py-3 font-bold text-emerald-800">{entry.points}</td>
                 <td className="px-4 py-3">{entry.wins}/{entry.draws}/{entry.losses}</td>
                 <td className="px-4 py-3">{entry.setsWon}:{entry.setsLost} ({setDiff >= 0 ? "+" : ""}{setDiff})</td>

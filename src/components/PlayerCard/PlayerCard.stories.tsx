@@ -19,5 +19,5 @@ export const Female: Story = {
 };
 
 export const ReadOnly: Story = {
-  args: { player: { id: "3", name: "Ben Schmidt", gender: "m", strength: 5 } },
+  args: { player: { id: "3", name: "Ben Schmidt", gender: "m", strength: 4 } },
 };
